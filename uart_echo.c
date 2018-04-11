@@ -183,6 +183,9 @@ main(void)
 
     // Enable GPIO port C pin 6 as the RS-485 transceiver rx/tx pin
     ROM_GPIOPinTypeGPIOOutput(GPIO_PORTC_BASE, GPIO_PIN_6);
+    // enable tied pin as input to read output of enable pin
+    ROM_GPIOPinTypeGPIOInput(GPIO_PORTC_BASE, GPIO_PIN_7);
+
     // Write transceiver enable pin low for listening
     GPIOPinWrite(GPIO_PORTC_BASE, GPIO_PIN_6, 0);
     //
@@ -200,7 +203,7 @@ main(void)
     //
     // Configure the UART for 115,200, 8-N-1 operation.
     //
-    ROM_UARTConfigSetExpClk(UART7_BASE, g_ui32SysClock, 115200,
+    ROM_UARTConfigSetExpClk(UART7_BASE, g_ui32SysClock, 9600,
                             (UART_CONFIG_WLEN_8 | UART_CONFIG_STOP_ONE |
                              UART_CONFIG_PAR_NONE));
 
@@ -221,7 +224,7 @@ main(void)
     while(1)
     {
         // Check the busy flag in the uart7 register. If not busy, set transceiver pin low
-        if (!UARTBusy(UART7_BASE)){
+        if (GPIOPinRead(GPIO_PORTC_BASE, GPIO_PIN_7) && !UARTBusy(UART7_BASE)){
             // Set transceiver rx/tx pin low
             GPIOPinWrite(GPIO_PORTC_BASE, GPIO_PIN_6, 0);
         }
