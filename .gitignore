@@ -4,7 +4,3 @@ Debug
 .ccsproject
 .cproject
 .project
-macros.ini_initial
-startup_ccs.c
-target_config.ccxml
-uart_echo_ccs.cmd
