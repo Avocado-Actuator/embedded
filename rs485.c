@@ -87,6 +87,11 @@ UARTIntHandler(void)
         recv[ind] = ROM_UARTCharGet(UART7_BASE);
         ind++;
     }
+    uint8_t crcin = recv[ind-1];
+    if (crc8(0, (uint8_t *)recv, ind - 1) != crcin){
+        // ********** ERROR ***********
+        // Handle corrupted message
+    }
     // Send back everything that we received in that batch
     UARTSend((uint8_t *)recv, ind);
 }
