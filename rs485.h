@@ -20,6 +20,7 @@
 #include "inc/hw_ints.h"
 #include "driverlib/rom.h"
 #include "driverlib/rom_map.h"
+#include "crc.h"
 
 void RSInit(uint32_t);
 void UARTIntHandler(void);

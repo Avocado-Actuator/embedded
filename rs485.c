@@ -41,6 +41,8 @@ RSInit(uint32_t g_ui32SysClock){
 void
 UARTSend(const uint8_t *pui8Buffer, uint32_t ui32Count)
 {
+    // Add CRC byte to message
+    uint8_t crc = crc8(0, pui8Buffer, ui32Count);
     // Set transceiver rx/tx pin high to send
     UARTSetWrite();
     bool space = true;
@@ -55,6 +57,11 @@ UARTSend(const uint8_t *pui8Buffer, uint32_t ui32Count)
             space = ROM_UARTCharPutNonBlocking(UART7_BASE, *pui8Buffer);
         }
         *pui8Buffer++;
+    }
+    space = ROM_UARTCharPutNonBlocking(UART7_BASE, crc);
+    // If send FIFO is full, wait until we can put the char in
+    while (!space){
+        space = ROM_UARTCharPutNonBlocking(UART7_BASE, crc);
     }
 }
 

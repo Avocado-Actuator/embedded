@@ -19,6 +19,7 @@
 #include "utils/uartstdio.h" // NEW INCLUDE!!!
 #include "utils/uartstdio.c" // NEW INCLUDE!!!
 #include "rs485.h" // NEW INCLUDE!!!
+#include "crc.h"
 
 // System clock rate in Hz.
 uint32_t g_ui32SysClock;
