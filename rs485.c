@@ -22,7 +22,7 @@ RSInit(uint32_t g_ui32SysClock){
     // enable tied pin as input to read output of enable pin
     GPIOPinTypeGPIOInput(GPIO_PORTC_BASE, GPIO_PIN_7);
     // Write transceiver enable pin low for listening
-    GPIOPinWrite(GPIO_PORTC_BASE, GPIO_PIN_6, 0);
+    UARTSetRead();
     // Configure the UART for 115,200, 8-N-1 operation.
     ROM_UARTConfigSetExpClk(UART7_BASE, uartSysClock, 115200,
                             (UART_CONFIG_WLEN_8 | UART_CONFIG_STOP_ONE |
@@ -42,7 +42,7 @@ void
 UARTSend(const uint8_t *pui8Buffer, uint32_t ui32Count)
 {
     // Set transceiver rx/tx pin high to send
-    GPIOPinWrite(GPIO_PORTC_BASE, GPIO_PIN_6, GPIO_PIN_6);
+    UARTSetWrite();
     bool space = true;
     // Loop while there are more characters to send.
     while(ui32Count--)
@@ -82,4 +82,21 @@ UARTIntHandler(void)
     }
     // Send back everything that we received in that batch
     UARTSend((uint8_t *)recv, ind);
+}
+
+bool
+UARTReady(){
+    return GPIOPinRead(GPIO_PORTC_BASE, GPIO_PIN_7) && !UARTBusy(UART7_BASE);
+}
+
+void
+UARTSetRead(){
+    GPIOPinWrite(GPIO_PORTC_BASE, GPIO_PIN_6, 0); // Set transceiver rx/tx pin low for read mode
+    return;
+}
+
+void
+UARTSetWrite(){
+    GPIOPinWrite(GPIO_PORTC_BASE, GPIO_PIN_6, GPIO_PIN_6); // Set transceiver rx/tx pin low for read mode
+    return;
 }

@@ -86,8 +86,8 @@ main(void) {
     while(1)
     {
         // Check the busy flag in the uart7 register. If not busy, set transceiver pin low
-        if (GPIOPinRead(GPIO_PORTC_BASE, GPIO_PIN_7) && !UARTBusy(UART7_BASE)){
-            GPIOPinWrite(GPIO_PORTC_BASE, GPIO_PIN_6, 0); // Set transceiver rx/tx pin low
+        if (UARTReady()){
+            UARTSetRead();
         }
         if (timer > 100000){
             //int ret = getCurrent();

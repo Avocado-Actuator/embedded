@@ -24,6 +24,9 @@
 void RSInit(uint32_t);
 void UARTIntHandler(void);
 void UARTSend(const uint8_t*, uint32_t);
+bool UARTReady(void);
+void UARTSetRead(void);
+void UARTSetWrite(void);
 
 uint32_t uartSysClock;
 
