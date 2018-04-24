@@ -112,3 +112,11 @@ UARTSetWrite(){
     GPIOPinWrite(GPIO_PORTC_BASE, GPIO_PIN_6, GPIO_PIN_6); // Set transceiver rx/tx pin low for read mode
     return;
 }
+
+void UARTSetAddress(uint8_t addr){
+    uartAddress = addr;
+}
+
+uint8_t UARTGetAddress(){
+    return uartAddress;
+}
