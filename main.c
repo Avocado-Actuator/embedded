@@ -80,19 +80,44 @@ main(void) {
     UARTprintf("Tiva has turned on...\n");
 
     CurrentSenseInit();
+    //EncoderInit();
+    //ReflectInit();
+    //ButtonsInit();
 
+    UARTprintf("\nPolling Data...\n  ");
+    SysCtlDelay(16000000/3);
+
+    uint32_t angle, mag, agc, section;
+    uint32_t currents[4];
     // Loop forever echoing data through the UART.
-    int timer = 0;
     while(1)
     {
         // Check the busy flag in the uart7 register. If not busy, set transceiver pin low
         if (UARTReady()){
             UARTSetRead();
         }
-        if (timer > 100000){
-            //int ret = getCurrent();
-            timer = 0;
+        // Get current data
+        /*getCurrent(currents);
+        int i;
+        for (i = 0; i < CURRENT_CHANNELS; i++) {
+            UARTprintf("%d ** %d\n", i, currents[i]);
+        }*/
+        // Average data over number of cycles
+        //readAverageData(&angle, &mag, &agc);
+        // readData(&angle, &mag, &agc, &alarmHi, &alarmLo);
+        //UARTprintf("Angle: %d Magnitude: %d AGC: %d\n", angle, mag, agc);
+        /*if (alarmHi){
+            UARTprintf("Warning: Low magnetic field \n");
+        } else if (alarmLo) {
+            UARTprintf("Warning: High magnetic field \n");
+        }*/
+        // Check if button is pushed for zero position
+        /*uint8_t ui8Buttons = ButtonsPoll(0, 0);
+        if (ui8Buttons & USR_SW1){
+            zeroPosition();
         }
-        timer++;
+        section = getPosition();
+        UARTprintf("Section: %d \n", section);*/
+        SysCtlDelay(1000000);
     }
 }

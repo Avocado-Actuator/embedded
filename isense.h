@@ -19,7 +19,7 @@
 #include "utils/uartstdio.h"
 #include "rs485.h"
 
-#define NUM_CHANNELS 3
+#define CURRENT_CHANNELS 3
 
 //
 // This array is used for storing the data read from the ADC FIFO. It
@@ -27,6 +27,6 @@
 uint32_t isensereadings[4];
 
 void CurrentSenseInit(void);
-uint32_t getCurrent(void);
+void getCurrent(uint32_t*);
 
 #endif /* ISENSE_H_ */

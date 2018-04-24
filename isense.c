@@ -27,15 +27,14 @@ void CurrentSenseInit(void) {
     ADCIntClear(ADC0_BASE, 2);
 }
 
-uint32_t getCurrent(void) {
+void getCurrent(uint32_t* currents) {
     ADCProcessorTrigger(ADC0_BASE, 2); // Trigger the ADC conversion.
     while(!ADCIntStatus(ADC0_BASE, 2, false)){} // Wait for conversion to be completed.
     ADCIntClear(ADC0_BASE, 2); // Clear the ADC interrupt flag.
     ADCSequenceDataGet(ADC0_BASE, 2, isensereadings); // Read ADC Value.
-    // Interpret Data
     int i;
-    for (i = 0; i < NUM_CHANNELS; i++) {
-        UARTprintf("%d ** %d\n", i, isensereadings[i]);
+    for (i = 0; i <= CURRENT_CHANNELS; i++ ){
+        currents[i] = isensereadings[i];
     }
-    return 1;
+    return;
 }
