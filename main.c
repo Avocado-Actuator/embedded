@@ -81,7 +81,7 @@ main(void) {
 
     CurrentSenseInit();
     //EncoderInit();
-    //ReflectInit();
+    //ReflectInit(g_ui32SysClock);
     //ButtonsInit();
 
     UARTprintf("\nPolling Data...\n  ");

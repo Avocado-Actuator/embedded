@@ -13,6 +13,9 @@ void CurrentSenseInit(void) {
     // The ADC0 peripheral must be enabled for use.
     SysCtlPeripheralEnable(SYSCTL_PERIPH_ADC0);
     SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOD); // Using pins on port D
+    // Configure ADC clock to use the PLL (which is set at 480MHz) divided by 24 to get 20MHz
+    // and to sample at the full clock rate
+    ADCClockConfigSet(ADC0_BASE, ADC_CLOCK_SRC_PLL | ADC_CLOCK_RATE_FULL, 24);
     // Select the analog ADC function for these pins.
     GPIOPinTypeADC(GPIO_PORTD_BASE, GPIO_PIN_7 | GPIO_PIN_6 | GPIO_PIN_5);
     // Assign a sequence sampler, trigger source, and interrupt priority

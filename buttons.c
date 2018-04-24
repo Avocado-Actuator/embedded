@@ -36,13 +36,6 @@
 
 //*****************************************************************************
 //
-//! \addtogroup buttons_api
-//! @{
-//
-//*****************************************************************************
-
-//*****************************************************************************
-//
 // Holds the current, debounced state of each button.  A 0 in a bit indicates
 // that that button is currently pressed, otherwise it is released.
 // We assume that we start with all the buttons released (though if one is
@@ -178,10 +171,3 @@ ButtonsInit(void)
     //
     g_ui8ButtonStates = ROM_GPIOPinRead(BUTTONS_GPIO_BASE, ALL_BUTTONS);
 }
-
-//*****************************************************************************
-//
-// Close the Doxygen group.
-//! @}
-//
-//*****************************************************************************

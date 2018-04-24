@@ -6,11 +6,10 @@
  */
 #include "mag_encoder.h"
 
-void EncoderInit(void){
+void EncoderInit(uint32_t ui32SysClock){
     // References
     //https://e2e.ti.com/support/microcontrollers/tiva_arm/f/908/t/432569
     // https://gist.github.com/madcowswe/e360649b1f8075c042b794ac550f600b
-    uint32_t ui32SysClock;
     volatile uint32_t pui32DataTx[NUM_SSI_DATA];
     uint32_t pui32DataRx[NUM_SSI_DATA];
 
@@ -19,9 +18,7 @@ void EncoderInit(void){
     // TODO: The SYSCTL_XTAL_ value must be changed to match the value of the
     // crystal on your board.
     //
-    ui32SysClock = SysCtlClockFreqSet((SYSCTL_XTAL_25MHZ |
-                                          SYSCTL_OSC_MAIN |
-                                          SYSCTL_USE_OSC), 25000000);
+    SSISysClock = ui32SysClock;
 
     //
     // Display the setup on the console.
@@ -76,7 +73,7 @@ void EncoderInit(void){
     // capture data on.  Please reference the datasheet for more information on
     // the different SPI modes.
     //
-    SSIConfigSetExpClk(SSI0_BASE, ui32SysClock, SSI_FRF_MOTO_MODE_1,
+    SSIConfigSetExpClk(SSI0_BASE, SSISysClock, SSI_FRF_MOTO_MODE_1,
                            SSI_MODE_MASTER, 1000000, 16);
 
     //

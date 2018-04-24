@@ -47,7 +47,7 @@
 #define REG_ZEROPOS_HI  0x0016
 #define REG_ZEROPOS_LO  0x0017
 
-void EncoderInit(void);
+void EncoderInit(uint32_t);
 static uint8_t calcEvenParity(uint32_t value);
 uint32_t sendNOP(void);
 void writeRegister(uint32_t addr, uint32_t data);
@@ -55,5 +55,6 @@ uint32_t readRegister(uint32_t addr);
 void readData(uint32_t* angle, uint32_t* mag, char * agc, char * alarmHi, char * alarmLo);
 void readAverageData(uint32_t* angle, uint32_t* mag, uint32_t* agc);
 void zeroPosition(void);
+uint32_t SSISysClock;
 
 #endif /* MAG_ENCODER_H_ */
