@@ -58,11 +58,11 @@ UARTSend(const uint8_t *pui8Buffer, uint32_t ui32Count)
         }
         *pui8Buffer++;
     }
-    space = ROM_UARTCharPutNonBlocking(UART7_BASE, crc);
+    /*space = ROM_UARTCharPutNonBlocking(UART7_BASE, crc);
     // If send FIFO is full, wait until we can put the char in
     while (!space){
         space = ROM_UARTCharPutNonBlocking(UART7_BASE, crc);
-    }
+    }*/
 }
 
 //*****************************************************************************
@@ -87,11 +87,11 @@ UARTIntHandler(void)
         recv[ind] = ROM_UARTCharGet(UART7_BASE);
         ind++;
     }
-    uint8_t crcin = recv[ind-1];
+    /*uint8_t crcin = recv[ind-1];
     if (crc8(0, (uint8_t *)recv, ind - 1) != crcin){
         // ********** ERROR ***********
         // Handle corrupted message
-    }
+    }*/
     // Send back everything that we received in that batch
     UARTSend((uint8_t *)recv, ind);
 }

@@ -79,7 +79,7 @@ main(void) {
     UARTSend((uint8_t *)"\033[2JTiva has turned on\n\r", 24);
     UARTprintf("Tiva has turned on...\n");
 
-    CurrentSenseInit();
+    //CurrentSenseInit();
     //EncoderInit();
     //ReflectInit(g_ui32SysClock);
     //ButtonsInit();
