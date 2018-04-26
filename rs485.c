@@ -63,6 +63,10 @@ UARTSend(const uint8_t *pui8Buffer, uint32_t ui32Count)
     while (!space){
         space = ROM_UARTCharPutNonBlocking(UART7_BASE, crc);
     }*/
+    space = ROM_UARTCharPutNonBlocking(UART7_BASE, STOPBYTE);
+    while (!space){
+        space = ROM_UARTCharPutNonBlocking(UART7_BASE, STOPBYTE);
+    }
 }
 
 //*****************************************************************************
@@ -83,7 +87,7 @@ UARTIntHandler(void)
     uint32_t ind = 0;
     char curr = ROM_UARTCharGet(UART7_BASE);
     // Loop while there are characters in the receive FIFO.
-    while(curr != '!')
+    while(curr != STOPBYTE)
     {
         recv[ind] = curr;
         ind++;

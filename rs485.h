@@ -33,5 +33,6 @@ uint8_t UARTGetAddress(void);
 
 uint8_t uartAddress;
 uint32_t uartSysClock;
+static uint8_t STOPBYTE = '!';
 
 #endif /* RS485_H_ */
