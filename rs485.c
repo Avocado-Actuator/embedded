@@ -81,17 +81,20 @@ UARTIntHandler(void)
     // Initialize recv buffer
     char recv[40] = "";
     uint32_t ind = 0;
+    char curr = ROM_UARTCharGet(UART7_BASE);
     // Loop while there are characters in the receive FIFO.
-    while(ROM_UARTCharsAvail(UART7_BASE))
+    while(curr != '!')
     {
-        recv[ind] = ROM_UARTCharGet(UART7_BASE);
+        recv[ind] = curr;
         ind++;
+        curr = ROM_UARTCharGet(UART7_BASE);
     }
     /*uint8_t crcin = recv[ind-1];
     if (crc8(0, (uint8_t *)recv, ind - 1) != crcin){
         // ********** ERROR ***********
         // Handle corrupted message
     }*/
+    UARTprintf("Text: %s    ind: %d\n", recv, ind);
     // Send back everything that we received in that batch
     UARTSend((uint8_t *)recv, ind);
 }
