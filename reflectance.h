@@ -27,7 +27,9 @@
 uint32_t pui32ADC0Value[8];
 
 void ReflectInit(void);
-uint32_t getPosition(void);
+uint32_t getSection(void);
 uint32_t bin2int(char* binArray, uint8_t size);
+void gray2bin(char* gray, char* bin, uint8_t size);
+float calcFinalAngle(uint32_t angle, uint32_t section);
 
 #endif /* REFLECTANCE_H_ */

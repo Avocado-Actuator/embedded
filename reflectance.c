@@ -50,7 +50,7 @@ uint32_t bin2int(char* binArray, uint8_t size) {
     return bin;
 }
 
-uint32_t getPosition(void) {
+uint32_t getSection(void) {
     // Trigger the ADC conversion.
     ADCProcessorTrigger(ADC0_BASE, 0);
     // Wait for conversion to be completed.
@@ -61,13 +61,58 @@ uint32_t getPosition(void) {
     ADCSequenceDataGet(ADC0_BASE, 0, pui32ADC0Value);
     // Convert each sample to binary
     int i;
-    char binArray[NUM_CHANNELS];
+    char greyArray[NUM_CHANNELS];
     for (i = 0; i < NUM_CHANNELS; i++) {
         if (pui32ADC0Value[i] > THRESH) {
-            binArray[i] = 1;
+            greyArray[i] = 1;
         } else {
-            binArray[i] = 0;
+            greyArray[i] = 0;
         }
     }
-    return bin2int(binArray, NUM_CHANNELS-1);
+    char binArray[NUM_CHANNELS];
+    gray2bin(greyArray, binArray, NUM_CHANNELS);
+    return bin2int(binArray, NUM_CHANNELS);
+}
+
+void gray2bin(char* gray, char* bin, uint8_t size)
+{
+
+    // MSB of binary code is same as gray code
+    bin[0] = gray[0];
+
+    // Compute remaining bits
+    uint32_t i;
+    for (i = 1; i < size; i++) {
+        // If current bit is 0, concatenate
+        // previous bit
+        if (gray[i] == 0) {
+            bin[i] = bin[i - 1];
+        }
+        // Else, concatenate invert of
+        // previous bit
+        else {
+            bin[i] = (~(bin[i - 1]) & 0x01);
+        }
+    }
+}
+
+float calcFinalAngle(uint32_t angle, uint32_t section) {
+    uint32_t final_section;
+    // Check if the mag encoder angle corresponds to correct half of section
+    if ((section % 2 == 0) & (angle > 270)) {
+        // Reset section back 1
+        if (section == 0) {
+            final_section = 7;
+        } else {
+            final_section = (section - 1)/2;
+        }
+    } else if ((section % 2 == 1) & (angle < 90)) {
+        // Set section forward by 1
+        if (section == 15) {
+            final_section = 0;
+        } else {
+            final_section = (section + 1)/2;
+        }
+    }
+    return ((float) angle/360.0)*45.0 + (float) final_section*45.0;
 }

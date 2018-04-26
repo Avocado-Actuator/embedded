@@ -87,7 +87,7 @@ UARTIntHandler(void)
     uint32_t ind = 0;
     char curr = ROM_UARTCharGet(UART7_BASE);
     // Loop while there are characters in the receive FIFO.
-    while(curr != STOPBYTE)
+    while(curr != STOPBYTE && ind < 40)
     {
         recv[ind] = curr;
         ind++;

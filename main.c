@@ -19,6 +19,9 @@
 #include "utils/uartstdio.h" // NEW INCLUDE!!!
 #include "utils/uartstdio.c" // NEW INCLUDE!!!
 #include "rs485.h" // NEW INCLUDE!!!
+#include "reflectance.h" // NEW INCLUDE!!!
+#include "buttons.h" // NEW INCLUDE!!!
+#include "mag_encoder.h" // NEW INCLUDE!!!
 
 // System clock rate in Hz.
 uint32_t g_ui32SysClock;
@@ -87,7 +90,7 @@ main(void) {
     UARTprintf("\nPolling Data...\n  ");
     SysCtlDelay(16000000/3);
 
-    uint32_t angle, mag, agc, section;
+    uint32_t angle, mag, agc, section, final_angle;
     uint32_t currents[4];
     // Loop forever echoing data through the UART.
     while(1)
@@ -117,7 +120,11 @@ main(void) {
             zeroPosition();
         }
         section = getPosition();
-        UARTprintf("Section: %d \n", section);*/
+        UARTprintf("Section: %d \n", section);
+        // Calculate final angle position in degrees
+        final_angle = calcFinalAngle(angle, section);
+        UARTprintf("Final angle: %d \n", final_angle);
+        */
         SysCtlDelay(1000000);
     }
 }
