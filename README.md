@@ -1,2 +1,3 @@
-# embedded
-Code for embedded microcontroller
+# Assets
+
+A branch for holding assets for documentation
