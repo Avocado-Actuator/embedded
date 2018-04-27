@@ -22,6 +22,7 @@
 #include "reflectance.h" // NEW INCLUDE!!!
 #include "buttons.h" // NEW INCLUDE!!!
 #include "mag_encoder.h" // NEW INCLUDE!!!
+#include "motor.h"
 
 // System clock rate in Hz.
 uint32_t g_ui32SysClock;
@@ -86,11 +87,11 @@ main(void) {
     //EncoderInit();
     //ReflectInit(g_ui32SysClock);
     //ButtonsInit();
+    MotorInit(g_ui32SysClock);
 
     UARTprintf("\nPolling Data...\n  ");
     SysCtlDelay(16000000/3);
 
-    uint32_t angle, mag, agc, section, final_angle;
     uint32_t currents[4];
     // Loop forever echoing data through the UART.
     while(1)
@@ -105,26 +106,23 @@ main(void) {
         for (i = 0; i < CURRENT_CHANNELS; i++) {
             UARTprintf("%d ** %d\n", i, currents[i]);
         }*/
-        // Average data over number of cycles
-        //readAverageData(&angle, &mag, &agc);
-        // readData(&angle, &mag, &agc, &alarmHi, &alarmLo);
-        //UARTprintf("Angle: %d Magnitude: %d AGC: %d\n", angle, mag, agc);
-        /*if (alarmHi){
-            UARTprintf("Warning: Low magnetic field \n");
-        } else if (alarmLo) {
-            UARTprintf("Warning: High magnetic field \n");
-        }*/
         // Check if button is pushed for zero position
-        /*uint8_t ui8Buttons = ButtonsPoll(0, 0);
+        uint8_t ui8Buttons = ButtonsPoll(0, 0);
         if (ui8Buttons & USR_SW1){
             zeroPosition();
         }
-        section = getPosition();
-        UARTprintf("Section: %d \n", section);
-        // Calculate final angle position in degrees
-        final_angle = calcFinalAngle(angle, section);
-        UARTprintf("Final angle: %d \n", final_angle);
-        */
+
+        if (time_flag_2ms==1){
+            time_flag_2ms=0;
+            GetAngle();
+            GetVelocity();
+            VelocityControl();
+            //frequency=5000;
+            //PWMGenPeriodSet(PWM0_BASE, PWM_GEN_2, (uint32_t)1875000/frequency);
+            //PWMPulseWidthSet(PWM0_BASE, PWM_GEN_2, (uint32_t)1875000/frequency*duty/100);
+
+
+        }
         SysCtlDelay(1000000);
     }
 }
