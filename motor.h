@@ -54,5 +54,6 @@ void MotorInit(uint32_t);
 void VelocityControl(void);
 void GetAngle(void);
 void GetVelocity(void);
+void testSpin(uint32_t, uint32_t);
 
 #endif /* MOTOR_H_ */

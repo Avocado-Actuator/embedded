@@ -50,6 +50,8 @@ void MotorInit(uint32_t g_ui32SysClock)
     /***********PWM control***********/
     //Enable PWM output on PG0, which connect to INHA
     SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOG);
+    SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOP);
+    SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOQ);
     SysCtlPeripheralEnable(SYSCTL_PERIPH_PWM0);
 
     //1/64 of system clock: 120Mhz/64
@@ -63,7 +65,7 @@ void MotorInit(uint32_t g_ui32SysClock)
     PWMPulseWidthSet(PWM0_BASE, PWM_OUT_4, 20);
     PWMOutputState(PWM0_BASE, PWM_OUT_4_BIT, true);
     PWMGenEnable(PWM0_BASE, PWM_GEN_2);
-
+    UARTprintf("initializing motor driver pins\n");
     //Set PQ1 Always high for enable
     GPIOPinTypeGPIOOutput(GPIO_PORTQ_BASE, GPIO_PIN_1);
     GPIOPinWrite(GPIO_PORTQ_BASE, GPIO_PIN_1,GPIO_PIN_1);
@@ -102,7 +104,7 @@ void VelocityControl()
 }
 
 void GetAngle(){
-    uint32_t angle, mag, agc, section, final_angle;
+    uint32_t angle, mag, agc, section;
     //Average data over number of cycles
     readAverageData(&angle, &mag, &agc);
     section = getSection();
@@ -113,6 +115,11 @@ void GetAngle(){
 }
 
 void GetVelocity(){
-    CurrentVelocity = (CurrentAngle - PrevAngle)/ 0.001; // assumes measuring velocity every 1ms
+    CurrentVelocity = (CurrentAngle - PrevAngle)/ 0.002; // assumes measuring velocity every 1ms
     return;
+}
+
+void testSpin(uint32_t freq, uint32_t dut){
+    PWMGenPeriodSet(PWM0_BASE, PWM_GEN_2, 1875000/freq);
+    PWMPulseWidthSet(PWM0_BASE, PWM_GEN_2, 1875000/freq*dut/100);
 }
