@@ -136,7 +136,7 @@ sendData(enum Parameter par) {
         case Pos: value = 12; break;
         case Vel: value = CurrentVelocity; break;
         case Cur: value = 321; break;
-        default: UARTprintf("Asked for invalid value, aborting"); return;
+        default: UARTprintf("Asked for invalid parameter, aborting"); return;
     }
 
     char str[40];
@@ -146,6 +146,28 @@ sendData(enum Parameter par) {
     UARTprintf("Length: %d\n", strlen(str));
 
     UARTSend((uint8_t *) str, strlen(str));
+}
+
+/**
+ * Sets given parameter to given value.
+ *
+ * @param par - parameter to set
+ * @param value - value to set parameter to
+ */
+void
+setData(enum Parameter par, char* value) {
+    uint32_t converted = (uint32_t) strtol(value, NULL, 10);
+    UARTprintf("In setData\n");
+    UARTprintf("Converted value: %d\n", converted);
+
+    switch(par) {
+        case Pos: converted = 12; break;
+        case Vel: converted = CurrentVelocity; break;
+        case Cur: converted = 321; break;
+        default: UARTprintf("Tried to set invaliad parameter, aborting"); return;
+    }
+
+    // UARTSend((uint8_t *) str, strlen(str));
 }
 
 /**
@@ -207,6 +229,7 @@ handleUART(char* buffer, uint32_t length, bool verbose, bool echo) {
             // if set command then get parameter value to set to
             iter = getToken(iter, tok, STOPBYTE, 40);
             if(verbose) UARTprintf("Set val: %s\n", tok);
+            setData(par, tok);
         } else {
             sendData(par);
         }
