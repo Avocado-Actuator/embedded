@@ -86,26 +86,25 @@ main(void) {
     ROM_IntMasterEnable(); // Enable processor interrupts.
     ConsoleInit(); // Initialized UART0 for console output using UARTStdio
     UARTprintf("Tiva has turned on...\n");
-
-    //UARTSend((uint8_t *)"\033[2JTiva has turned on\n\r", 24);
+    RSInit(g_ui32SysClock); // Initialize the RS485 link
+    UARTSend((uint8_t *)"\033[2JTiva has turned on\n\r", 24);
 
     UARTprintf("Initializing...\n  ");
     //CurrentSenseInit();
     //EncoderInit();
     //ReflectInit(g_ui32SysClock);
     //ButtonsInit();
-    MotorInit(g_ui32SysClock);
-    //RSInit(g_ui32SysClock);
+    //MotorInit(g_ui32SysClock);
     UARTprintf("Initialized\n  ");
-
 
     // Loop forever echoing data through the UART.
     while(1)
     {
         // Check the busy flag in the uart7 register. If not busy, set transceiver pin low
-        /*if (UARTReady()){
+        if (UARTReady()){
             UARTSetRead();
-        }*/
+        }
+
         // Check if button is pushed for zero position
         /*uint8_t ui8Buttons = ButtonsPoll(0, 0);
         if (ui8Buttons & USR_SW1){
@@ -122,6 +121,7 @@ main(void) {
             UARTprintf("Current: %d\n", Current);
 
         }*/
+
         /*if (time_flag_1000ms == 1){
             time_flag_1000ms = 0;
             GetTemp();
