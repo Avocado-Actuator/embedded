@@ -30,14 +30,19 @@ void CurrentSenseInit(void) {
     ADCIntClear(ADC0_BASE, 2);
 }
 
-void getCurrent(uint32_t* currents) {
+void getCurrent() {
     ADCProcessorTrigger(ADC0_BASE, 2); // Trigger the ADC conversion.
     while(!ADCIntStatus(ADC0_BASE, 2, false)){} // Wait for conversion to be completed.
     ADCIntClear(ADC0_BASE, 2); // Clear the ADC interrupt flag.
     ADCSequenceDataGet(ADC0_BASE, 2, isensereadings); // Read ADC Value.
     int i;
+    float volt, sum = 0;
     for (i = 0; i <= CURRENT_CHANNELS; i++ ){
-        currents[i] = isensereadings[i];
+        volt = isensereadings[i] / 4095 * 3.3; // turns analog value into voltage
+        // i = (Vref / 2 - Vmeasured) / (gain * Rsense)
+        sum += (3.3/2 - volt) / (10 * 0.014);
     }
+    PrevCurrent = Current;
+    Current = sum;
     return;
 }
