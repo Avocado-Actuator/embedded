@@ -70,6 +70,12 @@ ConsoleInit(void)
 // Main function
 //
 //*****************************************************************************
+
+//*****************************************************************************
+// SUPER IMPORTANT, CCS IS JANK, NEED TO INCREASE STACK SIZE MANUALLY IN ORDER
+// TO USE SPRINTF, GO TO Build -> ARM Linker -> Basic Options IN PROJECT
+// PROPERTIES SET C SYSTEM STACK SIZE TO 65536
+//*****************************************************************************
 int
 main(void) {
     // Set the clocking to run directly from the crystal at 120MHz.
