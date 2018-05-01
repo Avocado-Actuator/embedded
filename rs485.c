@@ -149,6 +149,74 @@ sendData(enum Parameter par) {
 //    UARTSend( , );
 }
 
+/**
+ * Takes actions on message as appropriate.
+ *
+ * If address does not match our own, bail out and send message on.
+ *
+ *
+ * @param buffer - pointer to the message
+ * @param length - the length of the message
+ * @param verbose - if true print to console for debugging
+ * @param echo - if true simply echo the message, can also be helpful for debugging
+ * @return if we successfully handled a message meant for us
+ */
+bool
+handleUART(char* buffer, uint32_t length, bool verbose, bool echo) {
+    if(echo) {
+        UARTSend((uint8_t *)buffer, length);
+    } else {
+        UARTprintf("\n\nText: %s\n\n", buffer);
+        char tok[40] = "";
+        // initially tokenize on spaces
+        char endByte = ' ';
+
+        // MANUALLY SETTING ADDRESS
+        ADDRESS = 1337;
+
+        // get address
+        char* iter = getToken(buffer, tok, ' ', 40);
+        if(verbose) UARTprintf("Address: %s\n", tok);
+
+        if(strtol(tok, NULL, 10) != ADDRESS) {
+            if(verbose) UARTprintf("Not my address, sending on -> %s", tok);
+            UARTSend((uint8_t *)buffer, length);
+            return false;
+        }
+
+        // trailing pointer to end of last token
+        // can be used to calculate token length
+        // char* trail = buffer; // reset to iter on subsequent uses
+        // uint32_t token_length = distBetween(trail, iter) - 1;
+
+        // get either "get" or "set"
+        iter = getToken(iter, tok, ' ', 40);
+        if(verbose) UARTprintf("Command: %s\n", tok);
+
+        enum Command type = strcmp(tok, "get") == 0 ? Get : Set;
+        // if get then next token is last and ends at STOPBYTE
+        endByte = type == Get ? STOPBYTE : ' ';
+
+        // get parameter - { pos, vel, cur }
+        iter = getToken(iter, tok, endByte, 40);
+        if(verbose) UARTprintf("Parameter: %s\n", tok);
+
+        enum Parameter par = strcmp(tok, "pos") == 0 ? Pos
+                : strcmp(tok, "vel") == 0 ? Vel : Cur;
+
+        if(type == Set) {
+            // if set command then get parameter value to set to
+            iter = getToken(iter, tok, STOPBYTE, 40);
+            if(verbose) UARTprintf("Set val: %s\n", tok);
+        } else {
+//            sendData(par);
+//            UARTSend();
+        }
+    }
+
+    return true;
+}
+
 //*****************************************************************************
 //
 // The UART interrupt handler.
