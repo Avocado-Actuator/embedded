@@ -28,10 +28,10 @@ void UARTSend(const uint8_t*, uint32_t);
 bool UARTReady(void);
 void UARTSetRead(void);
 void UARTSetWrite(void);
-void UARTSetAddress(uint8_t);
-uint8_t UARTGetAddress(void);
+void UARTSetAddress(long);
+long UARTGetAddress(void);
 
-uint8_t uartAddress;
+long ADDRESS;
 uint32_t uartSysClock;
 static uint8_t STOPBYTE = '!';
 
