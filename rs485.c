@@ -128,6 +128,27 @@ const char* getParameterName(enum Parameter par) {
     }
 }
 
+/**
+ * Sends value of given parameter on UART.
+ *
+ * @param par - parameter to send
+ */
+void
+sendData(enum Parameter par) {
+    uint32_t value;
+    switch(par) {
+        case Pos: value = 1; break;
+        case Vel: value = CurrentVelocity; break;
+        case Cur: value = 3; break;
+        default: UARTprintf("Asked for invalid value, aborting"); return;
+    }
+
+    char str[40];
+    sprintf(str, "%d", value);
+    UARTprintf("Parameter %s value: %s", getParameterName(par), str);
+//    UARTSend( , );
+}
+
 //*****************************************************************************
 //
 // The UART interrupt handler.
