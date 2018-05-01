@@ -23,6 +23,7 @@
 #include "buttons.h" // NEW INCLUDE!!!
 #include "mag_encoder.h" // NEW INCLUDE!!!
 #include "motor.h"
+#include "temp.h"
 
 // System clock rate in Hz.
 uint32_t g_ui32SysClock;
@@ -124,6 +125,10 @@ main(void) {
             //PWMPulseWidthSet(PWM0_BASE, PWM_GEN_2, (uint32_t)1875000/frequency*duty/100);
 
 
+        }*/
+        /*if (time_flag_1000ms == 1){
+            GetTemp();
+            UARTprintf("Temp: %d\n", CurrentTemp);
         }*/
         SysCtlDelay(1000000);
     }
