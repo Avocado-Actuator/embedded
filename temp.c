@@ -17,11 +17,12 @@ void TempInit(uint32_t ui32SysClock){
     GPIOPinConfigure(GPIO_PB5_SSI1CLK);
     GPIOPinConfigure(GPIO_PB4_SSI1FSS);
     GPIOPinConfigure(GPIO_PE4_SSI1XDAT0);
+    GPIOPinConfigure(GPIO_PE5_SSI1XDAT1);
     // Configure the GPIO settings for the SSI pins.  This function also gives
     // control of these pins to the SSI hardware.  Consult the data sheet to
     // see which functions are allocated per pin.
     GPIOPinTypeSSI(GPIO_PORTB_BASE, GPIO_PIN_4 | GPIO_PIN_5);
-    GPIOPinTypeSSI(GPIO_PORTE_BASE, GPIO_PIN_4);
+    GPIOPinTypeSSI(GPIO_PORTE_BASE, GPIO_PIN_4 | GPIO_PIN_5);
     // Configure and enable the SSI port for SPI master mode.  Use SSI0,
     // system clock supply, idle clock level low and active low clock in
     // freescale SPI mode, master mode, 1MHz SSI frequency, and 16-bit data.
