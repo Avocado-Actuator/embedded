@@ -9,7 +9,6 @@
 
 void CurrentSenseInit(void) {
     // Display the setup on the console.
-    UARTprintf("Initializing Current Sensing...\n");
     // The ADC0 peripheral must be enabled for use.
     SysCtlPeripheralEnable(SYSCTL_PERIPH_ADC0);
     SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOD); // Using pins on port D
@@ -28,6 +27,7 @@ void CurrentSenseInit(void) {
     // Clear the interrupt status flag.  This is done to make sure the
     // interrupt flag is cleared before we sample.
     ADCIntClear(ADC0_BASE, 2);
+    UARTprintf("Current sensors initialized\n");
 }
 
 void getCurrent() {

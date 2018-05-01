@@ -51,7 +51,7 @@ uint32_t CurrentAngle;
 uint32_t PrevAngle;
 uint32_t currentAngleError;
 uint32_t lastAngleError;
-uint32_t angleErrorInt=0;
+uint32_t angleErrorInt;
 uint32_t angleErrorDiff;
 
 void Timer0IntHandler(void);
