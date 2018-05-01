@@ -10,6 +10,9 @@
 
 #include <stdbool.h>
 #include <stdint.h>
+#include <string.h>
+#include <stdio.h>
+#include <stdlib.h>
 #include "inc/hw_memmap.h"
 #include "driverlib/adc.h"
 #include "driverlib/gpio.h"
@@ -21,6 +24,7 @@
 #include "driverlib/rom.h"
 #include "driverlib/rom_map.h"
 #include "crc.h"
+#include "motor.h"
 
 void RSInit(uint32_t);
 void UARTIntHandler(void);
