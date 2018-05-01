@@ -6,10 +6,6 @@
  */
 
 #include "rs485.h"
-#include "motor.h"
-#include <string.h>
-#include <stdio.h>
-#include <stdlib.h>
 
 void
 RSInit(uint32_t g_ui32SysClock){
