@@ -103,6 +103,33 @@ void VelocityControl()
     PWMPulseWidthSet(PWM0_BASE, PWM_GEN_2, 1875000/frequency*duty/100);
 }
 
+
+uint32_t TargetAngle;
+uint32_t CurrentAngle;
+uint32_t currentAngleError;
+uint32_t lastAngleError;
+uint32_t angleErrorInt=0;
+uint32_t angleErrorDiff;
+
+//Incremental PID control of velocity
+void PositionControl()
+{
+    currentAngleError=TargetAngle-CurrentAngle;
+    angleErrorInt+=currentAngleError;
+    angleErrorDiff=currentAngleError-lastAngleError;
+    frequency+=KP_angle*currentAngleError + KI_angle*angleErrorInt + KD_angle*angleErrorDiff;//P*e(k)+I*sigma(e)+D*(e(k)-e(k-1))
+    lastAngleError=currentAngleError;
+
+    //regulator
+    if (frequency<=0)
+        frequency=0;
+    if (frequency>=10000)
+        frequency=10000;
+
+    PWMGenPeriodSet(PWM0_BASE, PWM_GEN_2, 1875000/frequency);
+    PWMPulseWidthSet(PWM0_BASE, PWM_GEN_2, 1875000/frequency*duty/100);
+}
+
 void GetAngle(){
     uint32_t angle, mag, agc, section;
     //Average data over number of cycles
