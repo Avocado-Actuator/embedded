@@ -120,10 +120,10 @@ UARTSetWrite(){
     return;
 }
 
-void UARTSetAddress(uint8_t addr){
-    uartAddress = addr;
+void UARTSetAddress(long addr){
+    ADDRESS = addr;
 }
 
-uint8_t UARTGetAddress(){
-    return uartAddress;
+long UARTGetAddress(){
+    return ADDRESS;
 }
