@@ -29,6 +29,10 @@ float KP_velocity;
 float KI_velocity;
 float KD_velocity;
 
+float KP_angle;
+float KI_angle;
+float KD_angle;
+
 uint32_t Time;
 uint8_t time_flag_200ms;
 uint8_t time_flag_1000ms;
@@ -42,12 +46,12 @@ uint32_t prevVeloError;
 uint32_t frequency; //2500-9000
 uint32_t duty;
 
-uint32_t PrevAngle;
-uint32_t CurrentAngle;
 uint32_t TargetAngle;
+uint32_t CurrentAngle;
 uint32_t currentAngleError;
 uint32_t lastAngleError;
-uint32_t prevAngleError;
+uint32_t angleErrorInt=0;
+uint32_t angleErrorDiff;
 
 void Timer0IntHandler(void);
 void MotorInit(uint32_t);
