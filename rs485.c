@@ -64,9 +64,38 @@ UARTSend(const uint8_t *pui8Buffer, uint32_t ui32Count)
         space = ROM_UARTCharPutNonBlocking(UART7_BASE, crc);
     }*/
     space = ROM_UARTCharPutNonBlocking(UART7_BASE, STOPBYTE);
-    while (!space){
+    while (!space) {
         space = ROM_UARTCharPutNonBlocking(UART7_BASE, STOPBYTE);
     }
+}
+
+/**
+ * Extracts token up to given end byte, placing into given token pointer.
+ *
+ * @param buffer - pointer to start of string from which to extract token
+ * @param token - pointer to fill with token
+ * @param endByte - byte to extract until
+ * @param maxLen - maximum possible length, important in case message is
+ *   corrupted or end byte does not exist in string
+ * @return pointer to start of next token
+ */
+char*
+getToken(char* buffer, char* token, char endByte, int maxLen) {
+    uint32_t counter = 0;
+    // index of filling token buffer
+    uint32_t token_index = 0;
+    while(*buffer != endByte && counter < maxLen) {
+        token[token_index] = *buffer;
+
+        ++counter;
+        ++token_index;
+        ++buffer;
+    }
+
+    // terminate string with null character
+    token[token_index] = '\0';
+    // advance buffer past end byte
+    return ++buffer;
 }
 
 //*****************************************************************************
