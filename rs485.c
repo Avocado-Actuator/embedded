@@ -6,6 +6,10 @@
  */
 
 #include "rs485.h"
+#include "motor.h"
+#include <string.h>
+#include <stdio.h>
+#include <stdlib.h>
 
 void
 RSInit(uint32_t g_ui32SysClock){
@@ -96,6 +100,17 @@ getToken(char* buffer, char* token, char endByte, int maxLen) {
     token[token_index] = '\0';
     // advance buffer past end byte
     return ++buffer;
+}
+
+/**
+ * Calculates number of characters between two pointers.
+ *
+ * @param first - the first pointer, address must be less than second
+ * @param second - the second pointer, address must be greater than first
+ * @return number of characters between pointers
+ */
+uint32_t distBetween(char* first, char* second) {
+    return (second - first)*sizeof(*first);
 }
 
 //*****************************************************************************
