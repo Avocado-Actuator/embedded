@@ -137,16 +137,19 @@ void
 sendData(enum Parameter par) {
     uint32_t value;
     switch(par) {
-        case Pos: value = 1; break;
+        case Pos: value = 12; break;
         case Vel: value = CurrentVelocity; break;
-        case Cur: value = 3; break;
+        case Cur: value = 321; break;
         default: UARTprintf("Asked for invalid value, aborting"); return;
     }
 
     char str[40];
     sprintf(str, "%d", value);
-    UARTprintf("Parameter %s value: %s", getParameterName(par), str);
-//    UARTSend( , );
+    UARTprintf("In sendData\n");
+    UARTprintf("Converted string: %s\n", str);
+    UARTprintf("Length: %d\n", strlen(str));
+
+    UARTSend((uint8_t *) str, strlen(str));
 }
 
 /**
@@ -209,8 +212,7 @@ handleUART(char* buffer, uint32_t length, bool verbose, bool echo) {
             iter = getToken(iter, tok, STOPBYTE, 40);
             if(verbose) UARTprintf("Set val: %s\n", tok);
         } else {
-//            sendData(par);
-//            UARTSend();
+            sendData(par);
         }
     }
 
