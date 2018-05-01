@@ -25,8 +25,9 @@
 // This array is used for storing the data read from the ADC FIFO. It
 // must be as large as the FIFO for the sequencer in use.
 uint32_t isensereadings[4];
+float Current, PrevCurrent, TargetCurrent;
 
 void CurrentSenseInit(void);
-void getCurrent(uint32_t*);
+void getCurrent();
 
 #endif /* ISENSE_H_ */
