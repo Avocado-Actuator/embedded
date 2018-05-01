@@ -241,14 +241,19 @@ UARTIntHandler(void)
         ind++;
         curr = ROM_UARTCharGet(UART7_BASE);
     }
+
+    // keep stop byte for tokenizing
+    recv[ind] = curr;
+    ind++;
+
     /*uint8_t crcin = recv[ind-1];
     if (crc8(0, (uint8_t *)recv, ind - 1) != crcin){
         // ********** ERROR ***********
         // Handle corrupted message
     }*/
-    UARTprintf("Text: %s    ind: %d\n", recv, ind);
-    // Send back everything that we received in that batch
-    UARTSend((uint8_t *)recv, ind);
+
+    // handle given message
+    handleUART(recv, ind, true, false);
 }
 
 bool
