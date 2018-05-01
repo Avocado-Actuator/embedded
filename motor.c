@@ -103,14 +103,6 @@ void VelocityControl()
     PWMPulseWidthSet(PWM0_BASE, PWM_GEN_2, 1875000/frequency*duty/100);
 }
 
-
-uint32_t TargetAngle;
-uint32_t CurrentAngle;
-uint32_t currentAngleError;
-uint32_t lastAngleError;
-uint32_t angleErrorInt=0;
-uint32_t angleErrorDiff;
-
 //Incremental PID control of velocity
 void PositionControl()
 {
