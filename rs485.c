@@ -113,6 +113,21 @@ uint32_t distBetween(char* first, char* second) {
     return (second - first)*sizeof(*first);
 }
 
+/**
+ * Returns string corresponding to given enum value.
+ *
+ * @param par - enum value whose name to return
+ * @return the name of the enum value given
+ */
+const char* getParameterName(enum Parameter par) {
+    switch(par) {
+        case Pos: return "Pos";
+        case Vel: return "Vel";
+        case Cur: return "Cur";
+        default: return "NOP";
+    }
+}
+
 //*****************************************************************************
 //
 // The UART interrupt handler.
