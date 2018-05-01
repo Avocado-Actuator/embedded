@@ -23,9 +23,9 @@ void EncoderInit(uint32_t ui32SysClock){
     //
     // Display the setup on the console.
     //
-    UARTprintf("SSI ->\n");
+    /*UARTprintf("SSI ->\n");
     UARTprintf("  Mode: SPI\n");
-    UARTprintf("  Data: 16-bit\n\n");
+    UARTprintf("  Data: 16-bit\n\n");*/
 
     //
     // The SSI0 peripheral must be enabled for use.
@@ -93,6 +93,7 @@ void EncoderInit(uint32_t ui32SysClock){
     while(SSIDataGetNonBlocking(SSI0_BASE, &pui32DataRx[0]))
     {
     }
+    UARTprintf("Magnetic encoder initialized\n");
 }
 
 static uint8_t calcEvenParity(uint32_t value) {

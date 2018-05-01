@@ -30,6 +30,7 @@ RSInit(uint32_t g_ui32SysClock){
     // Enable the UART interrupt.
     ROM_IntEnable(INT_UART7);
     ROM_UARTIntEnable(UART7_BASE, UART_INT_RX | UART_INT_RT);
+    UARTprintf("RS485 initialized\n");
     return;
 }
 
@@ -193,7 +194,7 @@ handleUART(char* buffer, uint32_t length, bool verbose, bool echo) {
         char endByte = ' ';
 
         // MANUALLY SETTING ADDRESS
-        ADDRESS = 1337;
+        ADDRESS = 1;
 
         // get address
         char* iter = getToken(buffer, tok, ' ', 40);

@@ -170,4 +170,5 @@ ButtonsInit(void)
     // the GPIO bank.
     //
     g_ui8ButtonStates = ROM_GPIOPinRead(BUTTONS_GPIO_BASE, ALL_BUTTONS);
+    UARTprintf("Buttons initialized\n");
 }

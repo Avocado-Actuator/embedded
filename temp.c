@@ -34,6 +34,7 @@ void TempInit(uint32_t ui32SysClock){
                            SSI_MODE_MASTER, 1000000, 16);
     // Enable the SSI0 module.
     SSIEnable(SSI1_BASE);
+    UARTprintf("Thermocouple initialized\n");
 }
 
 void GetTemp(){
