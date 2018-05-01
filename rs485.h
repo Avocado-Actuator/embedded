@@ -35,4 +35,15 @@ long ADDRESS;
 uint32_t uartSysClock;
 static uint8_t STOPBYTE = '\0';
 
+enum Command {
+    Get = 0,
+    Set = 1
+};
+
+enum Parameter {
+    Pos = 0,
+    Vel = 1,
+    Cur = 2
+};
+
 #endif /* RS485_H_ */
