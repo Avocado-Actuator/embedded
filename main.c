@@ -86,15 +86,16 @@ main(void) {
     ROM_IntMasterEnable(); // Enable processor interrupts.
     ConsoleInit(); // Initialized UART0 for console output using UARTStdio
     UARTprintf("Tiva has turned on...\n");
-    RSInit(g_ui32SysClock); // Initialize the RS485 link
-    UARTSend((uint8_t *)"\033[2JTiva has turned on\n\r", 24);
+    //UARTSend((uint8_t *)"\033[2JTiva has turned on\n\r", 24);
 
     UARTprintf("Initializing...\n  ");
-    //CurrentSenseInit();
-    //EncoderInit();
-    //ReflectInit(g_ui32SysClock);
-    //ButtonsInit();
-    //MotorInit(g_ui32SysClock);
+    RSInit(g_ui32SysClock); // Initialize the RS485 link
+    CurrentSenseInit();
+    EncoderInit(g_ui32SysClock);
+    ReflectInit();
+    ButtonsInit();
+    MotorInit(g_ui32SysClock);
+    TempInit(g_ui32SysClock);
     UARTprintf("Initialized\n  ");
 
     // Loop forever echoing data through the UART.
