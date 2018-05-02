@@ -44,14 +44,14 @@ void VelocityControl(void);
 void PositionControl(void);
 void PositionControlCS(void);
 
-uint32_t getAngle(void);
-void setAngle(uint32_t);
-void setTargetAngle(uint32_t);
+float getAngle(void);
+void setAngle(float);
+void setTargetAngle(float);
 void updateAngle(void);
 
-uint32_t getVelocity(void);
-void setVelocity(uint32_t);
-void setTargetVelocity(uint32_t);
+float getVelocity(void);
+void setVelocity(float);
+void setTargetVelocity(float);
 void updateVelocity(void);
 
 void testSpin(uint32_t, uint32_t);

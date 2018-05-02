@@ -88,7 +88,7 @@ main(void) {
     UARTprintf("Tiva has turned on...\n");
     //UARTSend((uint8_t *)"\033[2JTiva has turned on\n\r", 24);
 
-    UARTprintf("Initializing...\n  ");
+    UARTprintf("Initializing...\n");
     RSInit(g_ui32SysClock); // Initialize the RS485 link
     CurrentSenseInit();
     EncoderInit(g_ui32SysClock);
