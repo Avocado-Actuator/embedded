@@ -232,8 +232,10 @@ handleUART(char* buffer, uint32_t length, bool verbose, bool echo) {
         iter = getToken(iter, tok, endByte, 40);
         if(verbose) UARTprintf("Parameter: %s\n", tok);
 
-        enum Parameter par = strcmp(tok, "pos") == 0 ? Pos
-                : strcmp(tok, "vel") == 0 ? Vel : Cur;
+        enum Parameter par =
+                strcmp(tok, "pos") == 0 ? Pos
+                : strcmp(tok, "vel") == 0 ? Vel
+                : strcmp(tok, "cur") == 0 ? Cur : Tmp;
 
         if(type == Set) {
             // if set command then get parameter value to set to
