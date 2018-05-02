@@ -25,6 +25,7 @@
 #include "driverlib/rom_map.h"
 #include "crc.h"
 #include "motor.h"
+#include "isense.h"
 
 void RSInit(uint32_t);
 void UARTIntHandler(void);
