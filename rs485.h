@@ -49,7 +49,8 @@ enum Command {
 enum Parameter {
     Pos = 0,
     Vel = 1,
-    Cur = 2
+    Cur = 2,
+    Tmp = 3
 };
 
 #endif /* RS485_H_ */
