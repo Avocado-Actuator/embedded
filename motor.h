@@ -40,25 +40,30 @@ uint8_t time_flag_2ms;
 
 uint32_t TargetVelocity;
 uint32_t CurrentVelocity;
-uint32_t currentVeloError;
-uint32_t lastVeloError;
-uint32_t prevVeloError;
+int currentVeloError;
+int lastVeloError;
+int prevVeloError;
 uint32_t frequency; //2500-9000
 uint32_t duty;
 
-uint32_t TargetAngle;
-uint32_t CurrentAngle;
-uint32_t PrevAngle;
-uint32_t currentAngleError;
-uint32_t lastAngleError;
-uint32_t angleErrorInt;
-uint32_t angleErrorDiff;
+int flag;
+
+int TargetAngle;
+int CurrentAngle;
+int PrevAngle;
+int currentAngleError;
+int lastAngleError;
+long long int angleErrorInt;
+int angleErrorDiff;
 
 void Timer0IntHandler(void);
 void MotorInit(uint32_t);
 void VelocityControl(void);
+void PositionControl(void);
+void PositionControlCS(void);
 void GetAngle(void);
 void GetVelocity(void);
 void testSpin(uint32_t, uint32_t);
-
+void brake(void);
+void disableDriver(void);
 #endif /* MOTOR_H_ */

@@ -8,6 +8,9 @@
 #include "reflectance.h"
 
 void ReflectInit(void) {
+    // Display the setup on the console.
+    UARTprintf("Initializing optical encoder...\n");
+
     // The ADC0 peripheral must be enabled for use.
     SysCtlPeripheralEnable(SYSCTL_PERIPH_ADC0);
 
@@ -35,7 +38,6 @@ void ReflectInit(void) {
     // Clear the interrupt status flag.  This is done to make sure the
     // interrupt flag is cleared before we sample.
     ADCIntClear(ADC0_BASE, 0);
-    UARTprintf("Optical encoder initialized\n");
 }
 
 uint32_t bin2int(char* binArray, uint8_t size) {
@@ -67,6 +69,7 @@ uint32_t getSection(void) {
             greyArray[i] = 0;
         }
     }
+
     char binArray[NUM_CHANNELS];
     gray2bin(greyArray, binArray, NUM_CHANNELS);
     return bin2int(binArray, NUM_CHANNELS);
@@ -111,6 +114,12 @@ float calcFinalAngle(uint32_t angle, uint32_t section) {
         } else {
             final_section = (section + 1)/2;
         }
+    } else {
+        final_section = section/2;
     }
-    return ((float) angle/360.0)*45.0 + (float) final_section*45.0;
+    //UARTprintf("section:%d\n",(int)section);
+    //UARTprintf("Angle:%d\n",(int)angle);
+    //UARTprintf("final_section:%d\n",(int)final_section);
+    return angle;
+    //return ((float) angle/360.0)*45.0 + (float) final_section*45.0;
 }
