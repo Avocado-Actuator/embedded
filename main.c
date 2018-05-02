@@ -98,6 +98,9 @@ main(void) {
     TempInit(g_ui32SysClock);
     UARTprintf("Initialized\n\n");
 
+    //testSpin(5000,80);
+    //disableDriver();
+
     // Loop forever echoing data through the UART.
     while(1)
     {
@@ -111,22 +114,25 @@ main(void) {
         if (ui8Buttons & USR_SW1){
             zeroPosition();
         }
+        */
 
         if (time_flag_2ms==1){
             time_flag_2ms=0;
+//            updateAngle();
             updateAngle();
-            updateVelocity();
-            VelocityControl();
+            PositionControl();
+            // updateVelocity();
+            // VelocityControl();
             // Get current data
-            updateCurrent();
-            UARTprintf("Current: %d\n", getCurrent());
-        }*/
+            // updateCurrent();
+            // UARTprintf("Current: %d\n", getCurrent());
+        }
 
-        /*if (time_flag_1000ms == 1){
+        if (time_flag_1000ms == 1){
             time_flag_1000ms = 0;
-            updateTemp();
-            UARTprintf("Temp: %d\n", CurrentTemp);
-        }*/
-        SysCtlDelay(1000000);
+//            updateTemp();
+//            UARTprintf("Temp: %d\n", getTemp());
+            UARTprintf("Angle: %d\n", getAngle());
+        }
     }
 }
