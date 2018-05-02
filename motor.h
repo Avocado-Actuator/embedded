@@ -38,21 +38,15 @@ uint8_t time_flag_200ms;
 uint8_t time_flag_1000ms;
 uint8_t time_flag_2ms;
 
-int flag;
-
-int TargetAngle;
-int CurrentAngle;
-int PrevAngle;
-int currentAngleError;
-int lastAngleError;
-long long int angleErrorInt;
-int angleErrorDiff;
-
 void Timer0IntHandler(void);
 void MotorInit(uint32_t);
 void VelocityControl(void);
 void PositionControl(void);
 void PositionControlCS(void);
+
+uint32_t getAngle(void);
+void setAngle(uint32_t);
+void setTargetAngle(uint32_t);
 void updateAngle(void);
 
 uint32_t getVelocity(void);
