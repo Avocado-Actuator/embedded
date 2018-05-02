@@ -201,8 +201,7 @@ handleUART(char* buffer, uint32_t length, bool verbose, bool echo) {
         if(verbose) UARTprintf("Address: %s\n", tok);
 
         if(strtol(tok, NULL, 10) != ADDRESS) {
-            if(verbose) UARTprintf("Not my address, sending on -> %s", tok);
-            UARTSend((uint8_t *)buffer, length);
+            if(verbose) UARTprintf("Not my address, abort");
             return false;
         }
 
