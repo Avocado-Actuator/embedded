@@ -18,8 +18,9 @@
 #include "utils/uartstdio.h"
 
 void TempInit(uint32_t);
-void GetTemp(void);
 
-float CurrentTemp, PrevTemp;
+float getTemp(void);
+void setTemp(float);
+void updateTemp(void);
 
 #endif /* TEMP_H_ */
