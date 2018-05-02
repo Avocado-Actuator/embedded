@@ -33,6 +33,8 @@ float KP_angle;
 float KI_angle;
 float KD_angle;
 
+int flag;
+
 uint32_t Time;
 uint8_t time_flag_200ms;
 uint8_t time_flag_1000ms;
