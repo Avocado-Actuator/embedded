@@ -28,13 +28,13 @@ void Timer0IntHandler(void)
     ROM_TimerIntClear(TIMER0_BASE, TIMER_TIMA_TIMEOUT);
     // Update the interrupt status.
     Time++;
-    if (Time%2000==0){
+    if (Time%20000==0){
             time_flag_200ms=1;
         }
-    if (Time%10000==0){
+    if (Time%100000==0){
         time_flag_1000ms=1;
     }
-    if (Time%2==0){//actually 200ns
+    if (Time%2==0){//actually 20ns
         time_flag_2ms=1;
     }
 }
@@ -51,12 +51,14 @@ void MotorInit(uint32_t g_ui32SysClock)
     KP_velocity=50;
     KI_velocity=90;
     KD_velocity=0;
+    flag=0;
 
-    KP_angle=0.03;
+    KP_angle=0.05;
     KI_angle=0.001;
     KD_angle=0;
 
-    setAngle(0);
+    //setAngle(0);
+    setTargetAngle(200);
     currentAngleError=0;
     /************** Initialization for timer (1ms)  *****************/
     //Enable the timer peripherals
@@ -64,7 +66,7 @@ void MotorInit(uint32_t g_ui32SysClock)
     // Configure 32-bit periodic timers.
     //1ms timer
     ROM_TimerConfigure(TIMER0_BASE, TIMER_CFG_PERIODIC);
-    ROM_TimerLoadSet(TIMER0_BASE, TIMER_A, g_ui32SysClock/10000);//was 1000, trigger every 1ms, 1000Hz
+    ROM_TimerLoadSet(TIMER0_BASE, TIMER_A, g_ui32SysClock/100000);//was 1000, trigger every 1ms, 1000Hz
     // Setup the interrupts for the timer timeouts.
     ROM_IntEnable(INT_TIMER0A);
     ROM_TimerIntEnable(TIMER0_BASE, TIMER_TIMA_TIMEOUT);
@@ -129,37 +131,48 @@ void VelocityControl()
     PWMPulseWidthSet(PWM0_BASE, PWM_GEN_2, 1875000/frequency*duty/100);
 }
 
+
+
 //PD control of position
 void PositionControl()
 {
-    currentAngleError = TargetAngle - getAngle();
+    int width=0;
+    int angle= (int) getAngle();
+    int target_angle=(int)getTargetAngle();
+    currentAngleError = target_angle - angle;
     if(currentAngleError<0){
-        currentAngleError+=360;
+        currentAngleError*=-1;
     }
     angleErrorInt+=currentAngleError;
     if(angleErrorInt>=300){
         angleErrorInt=300;
     }
-    angleErrorDiff=currentAngleError-lastAngleError;
-    duty=KP_angle*currentAngleError + KI_angle*angleErrorInt + KD_angle*angleErrorDiff;//P*e(k)+I*sigma(e)+D*(e(k)-e(k-1))
-    lastAngleError=currentAngleError;
-
+    //angleErrorDiff=currentAngleError-lastAngleError;
+    width=(int)(KP_angle*currentAngleError + KI_angle*angleErrorInt);// + KD_angle*angleErrorDiff;//P*e(k)+I*sigma(e)+D*(e(k)-e(k-1))
+    //lastAngleError=currentAngleError;
+    //regulator
+    if (width<=0)
+        width=0;
+    if (width>=18)
+        width=18;
 
 
     //if reach the target position, trigger break
-    if(currentAngleError<=5){
+    if(currentAngleError<=10){
+        UARTprintf("\nFinal Angle: %d",angle);
+        UARTprintf("\nTarget Angle: %d",target_angle);
+        //UARTPrintFloat(angle, false);
+        UARTprintf("\nbraking");
         brake();
     }
 
     else{
-        //regulator
-        if (duty<=0)
-            duty=0;
-        if (duty>=20)
-            duty=20;
+
+
+        //frequency=5000;
 
         //PWMGenPeriodSet(PWM0_BASE, PWM_GEN_2, 1875000/frequency);
-        PWMPulseWidthSet(PWM0_BASE, PWM_GEN_2, 1875000/frequency*duty/100);
+        PWMPulseWidthSet(PWM0_BASE, PWM_GEN_2, width);
     }
 
 }
@@ -217,7 +230,9 @@ void testSpin(uint32_t freq, uint32_t dut){
 }
 
 void brake(){
+    flag=1;
     testSpin(5000,0);
+
 //    GPIOPinWrite(GPIO_PORTP_BASE, GPIO_PIN_1,0);
 }
 
