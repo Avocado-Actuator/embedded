@@ -34,6 +34,9 @@ void Timer0IntHandler(void)
     if (Time%100000==0){
         time_flag_1000ms=1;
     }
+    if (Time%1000000==0){
+            time_flag_10000ms=1;
+        }
     if (Time%2==0){//actually 20ns
         time_flag_2ms=1;
     }
@@ -45,6 +48,7 @@ void MotorInit(uint32_t g_ui32SysClock)
     Time=0;
     time_flag_200ms = 0;
     time_flag_1000ms = 0;
+    time_flag_10000ms = 0;
     time_flag_2ms = 0;
     frequency = 5000; //2500-9000
     duty=0;
@@ -216,7 +220,7 @@ float getTargetVelocity() { return TargetVelocity; }
 void setTargetVelocity(float newVelocity) { TargetVelocity = newVelocity; }
 
 // unit: degree per second
-void UpdateVelocity() {
+void updateVelocity() {
     if (getAngle() - PrevAngle>=0){
         setVelocity((getAngle()- PrevAngle)/ 0.002); // assumes measuring velocity every 2ms
     } else {
