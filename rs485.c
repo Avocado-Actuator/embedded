@@ -160,18 +160,19 @@ sendData(enum Parameter par) {
  */
 void
 setData(enum Parameter par, char* value) {
-    uint32_t converted = (uint32_t) strtol(value, NULL, 10);
-    UARTprintf("In setData\n");
-    UARTprintf("Converted value: %d\n", converted);
+    UARTprintf("\nin setData\n");
+
+    float converted = strtof(value, NULL);
+    UARTPrintFloat(converted, false);
 
     switch(par) {
-        case Pos: converted = 12; break;
-        case Vel: converted = getVelocity(); break;
-        case Cur: converted = 321; break;
+        case Pos: setTargetAngle(converted); UARTprintf("New value: "); UARTPrintFloat(getTargetAngle(), false); break;
+        case Vel: setTargetVelocity(converted); UARTprintf("New value: "); UARTPrintFloat(getTargetVelocity(), false); break;
+        case Cur: setTargetCurrent(converted); UARTprintf("New value: "); UARTPrintFloat(getTargetCurrent(), false); break;
         default: UARTprintf("Tried to set invaliad parameter, aborting"); return;
     }
 
-    // UARTSend((uint8_t *) str, strlen(str));
+    UARTSend("Successfully set", 16);
 }
 
 /**
