@@ -135,19 +135,23 @@ const char* getParameterName(enum Parameter par) {
  */
 void
 sendData(enum Parameter par) {
-    uint32_t value;
+    UARTprintf("\nin sendData\n");
+
+    float value;
     switch(par) {
-        case Pos: value = 12; break;
-        case Vel: value = getVelocity(); break;
-        case Cur: value = 321; break;
+        case Pos: UARTprintf("Current value: "); UARTPrintFloat(getAngle(), false); value = getAngle(); break;
+        case Vel: UARTprintf("Current value: "); UARTPrintFloat(getVelocity(), false); value = getVelocity(); break;
+        case Cur: UARTprintf("Current value: "); UARTPrintFloat(getCurrent(), false); value = getCurrent(); break;
         default: UARTprintf("Asked for invalid parameter, aborting"); return;
     }
 
+    // MANUALLY SETTING BRAIN ADDRESS FOR NOW
+    BRAIN_ADDRESS = 0;
+
     char str[40];
-    sprintf(str, "%d", value);
-    UARTprintf("In sendData\n");
-    UARTprintf("Converted string: %s\n", str);
-    UARTprintf("Length: %d\n", strlen(str));
+    sprintf(str, "%d %f", BRAIN_ADDRESS, value);
+    UARTprintf("\nMessage %s", str);
+    UARTPrintFloat(value, true);
 
     UARTSend((uint8_t *) str, strlen(str));
 }
