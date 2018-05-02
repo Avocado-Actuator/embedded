@@ -46,11 +46,13 @@ void PositionControlCS(void);
 
 float getAngle(void);
 void setAngle(float);
+float getTargetAngle(void);
 void setTargetAngle(float);
 void updateAngle(void);
 
 float getVelocity(void);
 void setVelocity(float);
+float getTargetVelocity(void);
 void setTargetVelocity(float);
 void updateVelocity(void);
 
