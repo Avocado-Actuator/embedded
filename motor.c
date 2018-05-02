@@ -4,6 +4,14 @@
 
 #include "motor.h"
 
+uint32_t Velocity,
+    TargetVelocity,
+    currentVeloError,
+    lastVeloError,
+    prevVeloError,
+    frequency, //2500-9000
+    duty;
+
 void Timer0IntHandler(void)
 {
     // Clear the timer interrupt.
@@ -89,9 +97,14 @@ void MotorInit(uint32_t g_ui32SysClock)
 //Incremental PID control of velocity
 void VelocityControl()
 {
-    currentVeloError=TargetVelocity-CurrentVelocity;
+    currentVeloError = TargetVelocity - getVelocity();
 
-
+    UARTprintf("PWM output:%d.  ",frequency);
+    UARTprintf("Target(count per 0.2sec):%d.  ", TargetVelocity);
+    UARTprintf("speed(count per 0.2sec):%d.  ", getVelocity());
+    UARTprintf("KI:%d. ",currentVeloError);
+    UARTprintf("KP:%d. ",currentVeloError-lastVeloError);
+    UARTprintf("KD:%d. \n",currentVeloError+prevVeloError-2*lastVeloError);
 
     duty+=KP_velocity*(currentVeloError-lastVeloError) + KI_velocity*currentVeloError + KD_velocity*(currentVeloError+prevVeloError-2*lastVeloError);//P*(e(k)-e(k-1))+I*e(k)+D*((e(k)-e(k-1))-(e(k-1)-e(k-2)))
     prevVeloError=lastVeloError;
@@ -164,12 +177,16 @@ void UpdateAngle() {
 //Unit:degree per second
 void UpdateVelocity() {
     if (CurrentAngle - PrevAngle>=0){
-        CurrentVelocity = (CurrentAngle - PrevAngle)/ 0.002; // assumes measuring velocity every 2ms
+        setVelocity((CurrentAngle - PrevAngle)/ 0.002); // assumes measuring velocity every 2ms
     }
     else{
-        CurrentVelocity = (CurrentAngle + 360 - PrevAngle)/0.002;
+        setVelocity(CurrentAngle + 360 - PrevAngle)/0.002);
     }
 }
+
+uint32_t getVelocity() { return Velocity; }
+void setVelocity(uint32_t newVelocity) { Velocity = newVelocity; }
+void setTargetVelocity(uint32_t newVelocity) { TargetVelocity = newVelocity; }
 
 void testSpin(uint32_t freq, uint32_t dut){
     PWMGenPeriodSet(PWM0_BASE, PWM_GEN_2, 1875000/freq);

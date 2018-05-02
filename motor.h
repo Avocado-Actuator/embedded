@@ -38,14 +38,6 @@ uint8_t time_flag_200ms;
 uint8_t time_flag_1000ms;
 uint8_t time_flag_2ms;
 
-uint32_t TargetVelocity;
-uint32_t CurrentVelocity;
-int currentVeloError;
-int lastVeloError;
-int prevVeloError;
-uint32_t frequency; //2500-9000
-uint32_t duty;
-
 int flag;
 
 int TargetAngle;
@@ -62,7 +54,12 @@ void VelocityControl(void);
 void PositionControl(void);
 void PositionControlCS(void);
 void updateAngle(void);
+
+uint32_t getVelocity(void);
+void setVelocity(uint32_t);
+void setTargetVelocity(uint32_t);
 void updateVelocity(void);
+
 void testSpin(uint32_t, uint32_t);
 void brake(void);
 void disableDriver(void);

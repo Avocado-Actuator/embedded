@@ -135,7 +135,7 @@ sendData(enum Parameter par) {
     uint32_t value;
     switch(par) {
         case Pos: value = 12; break;
-        case Vel: value = CurrentVelocity; break;
+        case Vel: value = getVelocity(); break;
         case Cur: value = 321; break;
         default: UARTprintf("Asked for invalid parameter, aborting"); return;
     }
@@ -163,7 +163,7 @@ setData(enum Parameter par, char* value) {
 
     switch(par) {
         case Pos: converted = 12; break;
-        case Vel: converted = CurrentVelocity; break;
+        case Vel: converted = getVelocity(); break;
         case Cur: converted = 321; break;
         default: UARTprintf("Tried to set invaliad parameter, aborting"); return;
     }
