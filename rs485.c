@@ -139,9 +139,10 @@ sendData(enum Parameter par) {
 
     float value;
     switch(par) {
-        case Pos: UARTprintf("Current value: "); UARTPrintFloat(getAngle(), false); value = getAngle(); break;
-        case Vel: UARTprintf("Current value: "); UARTPrintFloat(getVelocity(), false); value = getVelocity(); break;
-        case Cur: UARTprintf("Current value: "); UARTPrintFloat(getCurrent(), false); value = getCurrent(); break;
+        case Pos: UARTprintf("Current pos: "); UARTPrintFloat(getAngle(), false); value = getAngle(); break;
+        case Vel: UARTprintf("Current vel: "); UARTPrintFloat(getVelocity(), false); value = getVelocity(); break;
+        case Cur: UARTprintf("Current current: "); UARTPrintFloat(getCurrent(), false); value = getCurrent(); break;
+        case Tmp: UARTprintf("Current temperature: "); UARTPrintFloat(getTemp(), false); value = getTemp(); break;
         default: UARTprintf("Asked for invalid parameter, aborting"); return;
     }
 
