@@ -4,6 +4,7 @@
 
 #include "motor.h"
 
+// velocity
 uint32_t Velocity,
     TargetVelocity,
     currentVeloError,
@@ -11,6 +12,15 @@ uint32_t Velocity,
     prevVeloError,
     frequency, //2500-9000
     duty;
+
+// angle
+uint32_t Angle,
+    TargetAngle,
+    PrevAngle,
+    currentAngleError,
+    lastAngleError,
+    angleErrorInt,
+    angleErrorDiff;
 
 void Timer0IntHandler(void)
 {
@@ -46,7 +56,6 @@ void MotorInit(uint32_t g_ui32SysClock)
     KI_angle=0;
     KD_angle=0;
 
-    flag=0;
     CurrentAngle=0;
     currentAngleError=0;
     /************** Initialization for timer (1ms)  *****************/
@@ -123,7 +132,7 @@ void VelocityControl()
 //PD control of position
 void PositionControl()
 {
-    currentAngleError=TargetAngle-CurrentAngle;
+    currentAngleError = TargetAngle - getAngle();
     if(currentAngleError<0){
         currentAngleError+=360;
     }
@@ -131,8 +140,6 @@ void PositionControl()
     angleErrorDiff=currentAngleError-lastAngleError;
     duty=KP_angle*currentAngleError + KI_angle*angleErrorInt + KD_angle*angleErrorDiff;//P*e(k)+I*sigma(e)+D*(e(k)-e(k-1))
     lastAngleError=currentAngleError;
-
-
 
     //if reach the target position, trigger break
     if(currentAngleError<=5){
@@ -163,24 +170,29 @@ void PositionControlCS()
         testSpin(5000,8);
     }
 }
+
+uint32_t getAngle() { return Angle; }
+void setAngle(uint32_t newAngle) { Angle = newAngle; }
+void setTargetAngle(uint32_t newAngle) { TargetAngle = newAngle; }
+
 void UpdateAngle() {
     uint32_t angle, mag, agc, section;
     //Average data over number of cycles
     readAverageData(&angle, &mag, &agc);
     section = getSection();
-    PrevAngle = CurrentAngle;
+    PrevAngle = getAngle();
     // Calculate final angle position in degrees
-    CurrentAngle = calcFinalAngle(angle, section);
+    setAngle(calcFinalAngle(angle, section));
     return;
 }
 
 //Unit:degree per second
 void UpdateVelocity() {
-    if (CurrentAngle - PrevAngle>=0){
-        setVelocity((CurrentAngle - PrevAngle)/ 0.002); // assumes measuring velocity every 2ms
+    if (getAngle() - PrevAngle>=0){
+        setVelocity((getAngle()- PrevAngle)/ 0.002); // assumes measuring velocity every 2ms
     }
     else{
-        setVelocity(CurrentAngle + 360 - PrevAngle)/0.002);
+        setVelocity(getAngle() + 360 - PrevAngle)/0.002);
     }
 }
 
@@ -194,7 +206,6 @@ void testSpin(uint32_t freq, uint32_t dut){
 }
 
 void brake(){
-    flag=1;
     testSpin(5000,0);
     GPIOPinWrite(GPIO_PORTP_BASE, GPIO_PIN_1,0);
 }
