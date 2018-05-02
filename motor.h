@@ -38,6 +38,7 @@ int flag;
 uint32_t Time;
 uint8_t time_flag_200ms;
 uint8_t time_flag_1000ms;
+uint8_t time_flag_10000ms;
 uint8_t time_flag_2ms;
 
 void Timer0IntHandler(void);

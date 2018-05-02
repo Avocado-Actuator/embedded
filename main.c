@@ -120,16 +120,18 @@ main(void) {
             time_flag_2ms=0;
 //            updateAngle();
             updateAngle();
-            if(flag==0)
-            {PositionControl();}
+            if(flag==0) {
+                GPIOPinWrite(GPIO_PORTQ_BASE, GPIO_PIN_1,GPIO_PIN_1);
+                PositionControl();
+            }
             else{
                 disableDriver();
-                break;
+//                break;
             }
-            // updateVelocity();
+             updateVelocity();
             // VelocityControl();
             // Get current data
-            // updateCurrent();
+             updateCurrent();
             // UARTprintf("Current: %d\n", getCurrent());
         }
 
@@ -137,8 +139,18 @@ main(void) {
             time_flag_1000ms = 0;
 //            updateTemp();
 //            UARTprintf("Temp: %d\n", getTemp());
-            UARTprintf("\nAngle: ");
-            UARTPrintFloat(getAngle(), 0);
+            UARTprintf("\n\nAngle: %d", (int) getAngle());
+            UARTprintf("\nTemperature: %d", (int) getTemp());
+            UARTprintf("\nCurrent: %d", (int) getCurrent());
+            UARTprintf("\nVelocity: %d", (int) getVelocity());
+//            UARTPrintFloat(getAngle(), 0);
+        }
+
+
+        if (time_flag_10000ms == 1){
+            time_flag_10000ms = 0;
+            setTargetAngle(((int) getTargetAngle() + 50) % 360);
+            UARTprintf("\n\nTarget angle: %d", (int) getTargetAngle());
         }
     }
 }
