@@ -174,6 +174,7 @@ void PositionControlCS()
 
 float getAngle() { return Angle; }
 void setAngle(float newAngle) { Angle = newAngle; }
+float getTargetAngle() { return TargetAngle; }
 void setTargetAngle(float newAngle) { TargetAngle = newAngle; }
 
 void UpdateAngle() {
@@ -189,6 +190,7 @@ void UpdateAngle() {
 
 float getVelocity() { return Velocity; }
 void setVelocity(float newVelocity) { Velocity = newVelocity; }
+float getTargetVelocity() { return TargetVelocity; }
 void setTargetVelocity(float newVelocity) { TargetVelocity = newVelocity; }
 
 // unit: degree per second

@@ -30,6 +30,7 @@ void CurrentSenseInit(void);
 
 float getCurrent(void);
 void setCurrent(float);
+float getTargetCurrent(void);
 void setTargetCurrent(float);
 void updateCurrent(void);
 
