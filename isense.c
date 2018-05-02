@@ -30,7 +30,7 @@ void CurrentSenseInit(void) {
     UARTprintf("Current sensors initialized\n");
 }
 
-void getCurrent() {
+void updateCurrent() {
     ADCProcessorTrigger(ADC0_BASE, 2); // Trigger the ADC conversion.
     while(!ADCIntStatus(ADC0_BASE, 2, false)){} // Wait for conversion to be completed.
     ADCIntClear(ADC0_BASE, 2); // Clear the ADC interrupt flag.
