@@ -34,6 +34,7 @@ void CurrentSenseInit(void) {
 
 float getCurrent() { return Current; }
 void setCurrent(float newCurrent) { Current = newCurrent; }
+float getTargetCurrent() { return TargetCurrent; }
 void setTargetCurrent(float newCurrent) { TargetCurrent = newCurrent; }
 
 void updateCurrent() {
