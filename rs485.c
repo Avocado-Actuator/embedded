@@ -173,6 +173,7 @@ setData(enum Parameter par, char* value) {
         case Pos: setTargetAngle(converted); UARTprintf("New value: "); UARTPrintFloat(getTargetAngle(), false); break;
         case Vel: setTargetVelocity(converted); UARTprintf("New value: "); UARTPrintFloat(getTargetVelocity(), false); break;
         case Cur: setTargetCurrent(converted); UARTprintf("New value: "); UARTPrintFloat(getTargetCurrent(), false); break;
+        case Tmp: UARTprintf("Invalid set, user tried to set temperature"); return;
         default: UARTprintf("Tried to set invaliad parameter, aborting"); return;
     }
 
