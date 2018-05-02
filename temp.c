@@ -7,6 +7,8 @@
 
 #include "temp.h"
 
+float Temp, PrevTemp;
+
 void TempInit(uint32_t ui32SysClock){
     // The SSI0 peripheral must be enabled for use.
     SysCtlPeripheralEnable(SYSCTL_PERIPH_SSI1);
@@ -37,13 +39,16 @@ void TempInit(uint32_t ui32SysClock){
     UARTprintf("Thermocouple initialized\n");
 }
 
-void GetTemp(){
+float getTemp() { return Temp; }
+void setTemp(float newTemp) { Temp = newTemp; }
+
+void updateTemp(){
     uint32_t data;
     SSIDataPut(SSI1_BASE, 0);
     SSIDataGet(SSI1_BASE, &data);
     data>>=2;
-    float decimal=0.25*(data & 0x3);
-    PrevTemp = CurrentTemp;
-    CurrentTemp = (data>>2);
+    // float decimal=0.25*(data & 0x3);
+    PrevTemp = getTemp();
+    setTemp(data>>2);
     return;
 }

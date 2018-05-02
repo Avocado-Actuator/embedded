@@ -124,7 +124,7 @@ main(void) {
 
         /*if (time_flag_1000ms == 1){
             time_flag_1000ms = 0;
-            GetTemp();
+            updateTemp();
             UARTprintf("Temp: %d\n", CurrentTemp);
         }*/
         SysCtlDelay(1000000);
