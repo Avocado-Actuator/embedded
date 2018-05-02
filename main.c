@@ -120,7 +120,12 @@ main(void) {
             time_flag_2ms=0;
 //            updateAngle();
             updateAngle();
-            PositionControl();
+            if(flag==0)
+            {PositionControl();}
+            else{
+                disableDriver();
+                break;
+            }
             // updateVelocity();
             // VelocityControl();
             // Get current data
@@ -132,7 +137,8 @@ main(void) {
             time_flag_1000ms = 0;
 //            updateTemp();
 //            UARTprintf("Temp: %d\n", getTemp());
-            UARTprintf("Angle: %d\n", getAngle());
+            UARTprintf("\nAngle: ");
+            UARTPrintFloat(getAngle(), 0);
         }
     }
 }
