@@ -52,8 +52,8 @@ void MotorInit(uint32_t g_ui32SysClock)
     KI_velocity=90;
     KD_velocity=0;
 
-    KP_angle=0.07;
-    KI_angle=0;
+    KP_angle=0.03;
+    KI_angle=0.001;
     KD_angle=0;
 
     setAngle(0);
@@ -137,22 +137,31 @@ void PositionControl()
         currentAngleError+=360;
     }
     angleErrorInt+=currentAngleError;
+    if(angleErrorInt>=300){
+        angleErrorInt=300;
+    }
     angleErrorDiff=currentAngleError-lastAngleError;
     duty=KP_angle*currentAngleError + KI_angle*angleErrorInt + KD_angle*angleErrorDiff;//P*e(k)+I*sigma(e)+D*(e(k)-e(k-1))
     lastAngleError=currentAngleError;
+
+
 
     //if reach the target position, trigger break
     if(currentAngleError<=5){
         brake();
     }
-    //regulator
-    if (duty<=0)
-        duty=0;
-    if (duty>=20)
-        duty=20;
 
-    //PWMGenPeriodSet(PWM0_BASE, PWM_GEN_2, 1875000/frequency);
-    PWMPulseWidthSet(PWM0_BASE, PWM_GEN_2, 1875000/frequency*duty/100);
+    else{
+        //regulator
+        if (duty<=0)
+            duty=0;
+        if (duty>=20)
+            duty=20;
+
+        //PWMGenPeriodSet(PWM0_BASE, PWM_GEN_2, 1875000/frequency);
+        PWMPulseWidthSet(PWM0_BASE, PWM_GEN_2, 1875000/frequency*duty/100);
+    }
+
 }
 
 
@@ -177,7 +186,7 @@ void setAngle(float newAngle) { Angle = newAngle; }
 float getTargetAngle() { return TargetAngle; }
 void setTargetAngle(float newAngle) { TargetAngle = newAngle; }
 
-void UpdateAngle() {
+void updateAngle() {
     uint32_t angle, mag, agc, section;
     //Average data over number of cycles
     readAverageData(&angle, &mag, &agc);
@@ -209,7 +218,7 @@ void testSpin(uint32_t freq, uint32_t dut){
 
 void brake(){
     testSpin(5000,0);
-    GPIOPinWrite(GPIO_PORTP_BASE, GPIO_PIN_1,0);
+//    GPIOPinWrite(GPIO_PORTP_BASE, GPIO_PIN_1,0);
 }
 
 void disableDriver(){
