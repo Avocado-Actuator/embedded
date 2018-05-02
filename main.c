@@ -85,7 +85,7 @@ main(void) {
                                                  SYSCTL_CFG_VCO_480), 120000000);
     ROM_IntMasterEnable(); // Enable processor interrupts.
     ConsoleInit(); // Initialized UART0 for console output using UARTStdio
-    UARTprintf("Tiva has turned on...\n");
+    UARTprintf("\n\nTiva has turned on...\n");
     //UARTSend((uint8_t *)"\033[2JTiva has turned on\n\r", 24);
 
     UARTprintf("Initializing...\n");
@@ -96,7 +96,7 @@ main(void) {
     ButtonsInit();
     MotorInit(g_ui32SysClock);
     TempInit(g_ui32SysClock);
-    UARTprintf("Initialized\n  ");
+    UARTprintf("Initialized\n\n");
 
     // Loop forever echoing data through the UART.
     while(1)
