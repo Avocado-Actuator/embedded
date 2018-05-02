@@ -35,6 +35,8 @@ void UARTSetWrite(void);
 void UARTSetAddress(long);
 long UARTGetAddress(void);
 
+void UARTPrintFloat(float, bool);
+
 long ADDRESS;
 uint32_t uartSysClock;
 static uint8_t STOPBYTE = '\0';
