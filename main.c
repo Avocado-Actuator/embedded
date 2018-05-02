@@ -114,11 +114,11 @@ main(void) {
 
         if (time_flag_2ms==1){
             time_flag_2ms=0;
-            GetAngle();
-            GetVelocity();
+            updateAngle();
+            updateVelocity();
             VelocityControl();
             // Get current data
-            getCurrent();
+            updateCurrent();
             UARTprintf("Current: %d\n", Current);
 
         }*/

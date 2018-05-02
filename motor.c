@@ -150,7 +150,7 @@ void PositionControlCS()
         testSpin(5000,8);
     }
 }
-void GetAngle(){
+void UpdateAngle() {
     uint32_t angle, mag, agc, section;
     //Average data over number of cycles
     readAverageData(&angle, &mag, &agc);
@@ -162,14 +162,13 @@ void GetAngle(){
 }
 
 //Unit:degree per second
-void GetVelocity(){
+void UpdateVelocity() {
     if (CurrentAngle - PrevAngle>=0){
         CurrentVelocity = (CurrentAngle - PrevAngle)/ 0.002; // assumes measuring velocity every 2ms
     }
     else{
         CurrentVelocity = (CurrentAngle + 360 - PrevAngle)/0.002;
     }
-    return;
 }
 
 void testSpin(uint32_t freq, uint32_t dut){
