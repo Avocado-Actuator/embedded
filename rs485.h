@@ -26,6 +26,7 @@
 #include "crc.h"
 #include "motor.h"
 #include "isense.h"
+#include "temp.h"
 
 void RSInit(uint32_t);
 void UARTIntHandler(void);
