@@ -23,9 +23,9 @@ void EncoderInit(uint32_t ui32SysClock){
     //
     // Display the setup on the console.
     //
-    /*UARTprintf("SSI ->\n");
+    UARTprintf("SSI ->\n");
     UARTprintf("  Mode: SPI\n");
-    UARTprintf("  Data: 16-bit\n\n");*/
+    UARTprintf("  Data: 16-bit\n\n");
 
     //
     // The SSI0 peripheral must be enabled for use.
@@ -93,7 +93,6 @@ void EncoderInit(uint32_t ui32SysClock){
     while(SSIDataGetNonBlocking(SSI0_BASE, &pui32DataRx[0]))
     {
     }
-    UARTprintf("Magnetic encoder initialized\n");
 }
 
 static uint8_t calcEvenParity(uint32_t value) {
@@ -124,9 +123,9 @@ void writeRegister(uint32_t addr, uint32_t data) {
     send |= calcEvenParity(send) << 15;
     SSIDataPut(SSI0_BASE, send);
     SSIDataGet(SSI0_BASE, &receive[1]);
-//    UARTprintf("Old register contents: %x", receive[1]);
+    UARTprintf("Old register contents: %x", receive[1]);
     receive[2] = sendNOP();
-//    UARTprintf("New register contents: %x", receive[2]);
+    UARTprintf("New register contents: %x", receive[2]);
 
 //    /* Check for errors */
 //    uint8_t i;
@@ -159,7 +158,7 @@ uint32_t readRegister(uint32_t addr) {
     data |= calcEvenParity(data) << 15;
     SSIDataPut(SSI0_BASE, data);
     SSIDataGet(SSI0_BASE, &data);
-//    UARTprintf("%x\n", data);
+    //UARTprintf("%x\n", data);
     return data;
 }
 
@@ -182,9 +181,12 @@ void readData(uint32_t* angle, uint32_t* mag, char * agc, char * alarmHi, char *
     *mag = recBuffer[2] & (16384 - 31 - 1);
 
     /* Send NOP ANGLE command. Received data is the ANGLE value*/
-    recBuffer[3] = sendNOP();
+    //recBuffer[3] = sendNOP();
+    recBuffer[3] = readRegister(REG_DATA);
     value = recBuffer[3] & (16384 - 31 - 1); // Angle value (0.. 16384 steps)
     *angle = (value * 360) / 16384; // Angle value in degrees (0..360)
+
+
 
     /* Check for errors */
     uint8_t i;
@@ -208,6 +210,9 @@ void readData(uint32_t* angle, uint32_t* mag, char * agc, char * alarmHi, char *
             break;
         }
     }
+
+    recBuffer[4] = sendNOP();
+
 }
 
 void readAverageData(uint32_t* angle, uint32_t* mag, uint32_t* agc){
@@ -230,7 +235,7 @@ void readAverageData(uint32_t* angle, uint32_t* mag, uint32_t* agc){
     if (alarmHi){
         UARTprintf("Warning: High magnetic field \n");
     } else if (alarmLo) {
-        UARTprintf("Warning: Low magnetic field \n");
+        //UARTprintf("Warning: Low magnetic field \n");
     }
 }
 
