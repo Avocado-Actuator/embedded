@@ -301,3 +301,10 @@ void UARTSetAddress(long addr){
 long UARTGetAddress(){
     return ADDRESS;
 }
+
+void UARTPrintFloat(float val, bool printLength) {
+    char str[80]; // pretty arbitrarily chosen
+    sprintf(str, "%f", val);
+    UARTprintf("%s\n", str);
+    if(printLength) UARTprintf("Length: %d\n", strlen(str));
+}
