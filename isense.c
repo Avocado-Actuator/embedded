@@ -7,6 +7,8 @@
 
 #include "isense.h"
 
+float Current, TargetCurrent, PrevCurrent;
+
 void CurrentSenseInit(void) {
     // Display the setup on the console.
     // The ADC0 peripheral must be enabled for use.
@@ -30,6 +32,10 @@ void CurrentSenseInit(void) {
     UARTprintf("Current sensors initialized\n");
 }
 
+float getCurrent() { return Current; }
+void setCurrent(float newCurrent) { Current = newCurrent; }
+void setTargetCurrent(float newCurrent) { TargetCurrent = newCurrent; }
+
 void updateCurrent() {
     ADCProcessorTrigger(ADC0_BASE, 2); // Trigger the ADC conversion.
     while(!ADCIntStatus(ADC0_BASE, 2, false)){} // Wait for conversion to be completed.
@@ -42,7 +48,7 @@ void updateCurrent() {
         // i = (Vref / 2 - Vmeasured) / (gain * Rsense)
         sum += (3.3/2 - volt) / (10 * 0.014);
     }
-    PrevCurrent = Current;
-    Current = sum;
+    PrevCurrent = getCurrent();
+    setCurrent(sum);
     return;
 }
