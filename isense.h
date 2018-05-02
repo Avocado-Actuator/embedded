@@ -28,6 +28,6 @@ uint32_t isensereadings[4];
 float Current, PrevCurrent, TargetCurrent;
 
 void CurrentSenseInit(void);
-void getCurrent();
+void updateCurrent();
 
 #endif /* ISENSE_H_ */
