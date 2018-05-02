@@ -5,22 +5,22 @@
 #include "motor.h"
 
 // velocity
-uint32_t Velocity,
-    TargetVelocity,
-    currentVeloError,
-    lastVeloError,
-    prevVeloError,
-    frequency, //2500-9000
-    duty;
+float   Velocity,
+        TargetVelocity,
+        currentVeloError,
+        lastVeloError,
+        prevVeloError,
+        frequency, //2500-9000
+        duty;
 
 // angle
-uint32_t Angle,
-    TargetAngle,
-    PrevAngle,
-    currentAngleError,
-    lastAngleError,
-    angleErrorInt,
-    angleErrorDiff;
+float   Angle,
+        TargetAngle,
+        PrevAngle,
+        currentAngleError,
+        lastAngleError,
+        angleErrorInt,
+        angleErrorDiff;
 
 void Timer0IntHandler(void)
 {
@@ -56,7 +56,7 @@ void MotorInit(uint32_t g_ui32SysClock)
     KI_angle=0;
     KD_angle=0;
 
-    CurrentAngle=0;
+    setAngle(0);
     currentAngleError=0;
     /************** Initialization for timer (1ms)  *****************/
     //Enable the timer peripherals
@@ -155,12 +155,13 @@ void PositionControl()
     PWMPulseWidthSet(PWM0_BASE, PWM_GEN_2, 1875000/frequency*duty/100);
 }
 
+
 //constant speed
 void PositionControlCS()
 {
-    currentAngleError=TargetAngle-CurrentAngle;
+    currentAngleError= TargetAngle - getAngle();
     if(currentAngleError<0){
-        currentAngle+=360;
+        setAngle(getAngle() + 360);
     }
     if(currentAngleError<=30){
         brake();
@@ -171,9 +172,9 @@ void PositionControlCS()
     }
 }
 
-uint32_t getAngle() { return Angle; }
-void setAngle(uint32_t newAngle) { Angle = newAngle; }
-void setTargetAngle(uint32_t newAngle) { TargetAngle = newAngle; }
+float getAngle() { return Angle; }
+void setAngle(float newAngle) { Angle = newAngle; }
+void setTargetAngle(float newAngle) { TargetAngle = newAngle; }
 
 void UpdateAngle() {
     uint32_t angle, mag, agc, section;
@@ -186,19 +187,18 @@ void UpdateAngle() {
     return;
 }
 
-//Unit:degree per second
+float getVelocity() { return Velocity; }
+void setVelocity(float newVelocity) { Velocity = newVelocity; }
+void setTargetVelocity(float newVelocity) { TargetVelocity = newVelocity; }
+
+// unit: degree per second
 void UpdateVelocity() {
     if (getAngle() - PrevAngle>=0){
         setVelocity((getAngle()- PrevAngle)/ 0.002); // assumes measuring velocity every 2ms
-    }
-    else{
-        setVelocity(getAngle() + 360 - PrevAngle)/0.002);
+    } else {
+        setVelocity((getAngle() + 360 - PrevAngle) / 0.002);
     }
 }
-
-uint32_t getVelocity() { return Velocity; }
-void setVelocity(uint32_t newVelocity) { Velocity = newVelocity; }
-void setTargetVelocity(uint32_t newVelocity) { TargetVelocity = newVelocity; }
 
 void testSpin(uint32_t freq, uint32_t dut){
     PWMGenPeriodSet(PWM0_BASE, PWM_GEN_2, 1875000/freq);
