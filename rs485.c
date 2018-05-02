@@ -7,6 +7,9 @@
 
 #include "rs485.h"
 
+uint8_t ADDRESS,
+        BRAIN_ADDRESS;
+
 void
 RSInit(uint32_t g_ui32SysClock){
     // Copy over the clock created in main
@@ -200,7 +203,7 @@ handleUART(char* buffer, uint32_t length, bool verbose, bool echo) {
         char* iter = getToken(buffer, tok, ' ', 40);
         if(verbose) UARTprintf("Address: %s\n", tok);
 
-        if(strtol(tok, NULL, 10) != ADDRESS) {
+        if(((uint8_t) strtol(tok, NULL, 10)) != ADDRESS) {
             if(verbose) UARTprintf("Not my address, abort");
             return false;
         }
@@ -294,11 +297,11 @@ UARTSetWrite(){
     return;
 }
 
-void UARTSetAddress(long addr){
+void UARTSetAddress(uint8_t addr) {
     ADDRESS = addr;
 }
 
-long UARTGetAddress(){
+uint8_t UARTGetAddress() {
     return ADDRESS;
 }
 
