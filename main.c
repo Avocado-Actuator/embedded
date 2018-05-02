@@ -119,8 +119,7 @@ main(void) {
             VelocityControl();
             // Get current data
             updateCurrent();
-            UARTprintf("Current: %d\n", Current);
-
+            UARTprintf("Current: %d\n", getCurrent());
         }*/
 
         /*if (time_flag_1000ms == 1){
