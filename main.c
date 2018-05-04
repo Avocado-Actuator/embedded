@@ -17,7 +17,6 @@
 #include "driverlib/uart.h"
 #include "isense.h" // NEW INCLUDE!!!
 #include "utils/uartstdio.h" // NEW INCLUDE!!!
-#include "utils/uartstdio.c" // NEW INCLUDE!!!
 #include "rs485.h" // NEW INCLUDE!!!
 #include "reflectance.h" // NEW INCLUDE!!!
 #include "buttons.h" // NEW INCLUDE!!!
@@ -115,7 +114,7 @@ main(void) {
             zeroPosition();
         }
         */
-
+/*
         if (time_flag_2ms==1){
             time_flag_2ms=0;
 //            updateAngle();
@@ -132,13 +131,13 @@ main(void) {
             // updateCurrent();
             // UARTprintf("Current: %d\n", getCurrent());
         }
-
+*/
         if (time_flag_1000ms == 1){
             time_flag_1000ms = 0;
-//            updateTemp();
+            updateTemp();
 //            UARTprintf("Temp: %d\n", getTemp());
-            UARTprintf("\nAngle: ");
-            UARTPrintFloat(getAngle(), 0);
+            //UARTprintf("\nAngle: ");
+            //UARTPrintFloat(getAngle(), 0);
         }
     }
 }
