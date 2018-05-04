@@ -54,6 +54,7 @@ void updateTemp(){
     data>>=2;
     // float decimal=0.25*(data & 0x3);
     PrevTemp = getTemp();
-    setTemp(data>>2);
+    setTemp(data);
+    UARTprintf("Temp: %d\n", data);
     return;
 }
