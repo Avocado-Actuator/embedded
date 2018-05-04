@@ -27,6 +27,9 @@ void TempInit(uint32_t ui32SysClock){
     GPIOPinTypeSSI(GPIO_PORTE_BASE,  GPIO_PIN_5);
 
     GPIOPinTypeGPIOInput(GPIO_PORTE_BASE,GPIO_PIN_4);
+    GPIOPinTypeSSI(GPIO_PORTE_BASE, GPIO_PIN_5);
+
+    GPIOPinTypeGPIOInput(GPIO_PORTE_BASE, GPIO_PIN_4);
     // Configure and enable the SSI port for SPI master mode.  Use SSI0,
     // system clock supply, idle clock level low and active low clock in
     // freescale SPI mode, master mode, 1MHz SSI frequency, and 16-bit data.
