@@ -93,6 +93,7 @@ void EncoderInit(uint32_t ui32SysClock){
     while(SSIDataGetNonBlocking(SSI0_BASE, &pui32DataRx[0]))
     {
     }
+    UARTprintf("Magnetic encoder initialized\n");
 }
 
 static uint8_t calcEvenParity(uint32_t value) {

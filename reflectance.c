@@ -8,9 +8,6 @@
 #include "reflectance.h"
 
 void ReflectInit(void) {
-    // Display the setup on the console.
-    UARTprintf("Initializing optical encoder...\n");
-
     // The ADC0 peripheral must be enabled for use.
     SysCtlPeripheralEnable(SYSCTL_PERIPH_ADC0);
 
@@ -38,6 +35,8 @@ void ReflectInit(void) {
     // Clear the interrupt status flag.  This is done to make sure the
     // interrupt flag is cleared before we sample.
     ADCIntClear(ADC0_BASE, 0);
+    // Display the setup on the console.
+    UARTprintf("Optical Encoder Initialized\n");
 }
 
 uint32_t bin2int(char* binArray, uint8_t size) {

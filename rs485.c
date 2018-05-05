@@ -51,11 +51,20 @@ RSInit(uint32_t g_ui32SysClock){
 void
 UARTSend(const uint8_t *pui8Buffer, uint32_t ui32Count)
 {
+    // TODO: implement construction of prefix bytes by ORing masks
+    // TODO: create data flags avocados can flip for the brain
     // Add CRC byte to message
     uint8_t crc = crc8(0, pui8Buffer, ui32Count);
+    // Construct address/flags byte prefix
+    uint8_t prefix = 0x00;
     // Set transceiver rx/tx pin high to send
     UARTSetWrite();
     bool space = true;
+    // Send the CRC for error-checking
+    space = ROM_UARTCharPutNonBlocking(UART7_BASE, prefix);
+    while (!space){
+        space = ROM_UARTCharPutNonBlocking(UART7_BASE, prefix);
+    }
     // Loop while there are more characters to send.
     while(ui32Count--)
     {
@@ -68,11 +77,12 @@ UARTSend(const uint8_t *pui8Buffer, uint32_t ui32Count)
         }
         *pui8Buffer++;
     }
-    /*space = ROM_UARTCharPutNonBlocking(UART7_BASE, crc);
-    // If send FIFO is full, wait until we can put the char in
+    // Send the CRC for error-checking
+    space = ROM_UARTCharPutNonBlocking(UART7_BASE, crc);
     while (!space){
         space = ROM_UARTCharPutNonBlocking(UART7_BASE, crc);
-    }*/
+    }
+    // Send the stopbyte
     space = ROM_UARTCharPutNonBlocking(UART7_BASE, STOPBYTE);
     while (!space) {
         space = ROM_UARTCharPutNonBlocking(UART7_BASE, STOPBYTE);
@@ -126,15 +136,11 @@ sendData(enum Parameter par) {
         default: UARTprintf("Asked for invalid parameter, aborting"); return;
     }
 
-    // MANUALLY SETTING BRAIN ADDRESS FOR NOW
-    BRAIN_ADDRESS = 0;
-
-    char str[8];
-    sprintf(str, "%d %f", BRAIN_ADDRESS, value);
+    uint8_t* str[4] = &value;
     UARTprintf("\nMessage %s", str);
-    UARTPrintFloat(value, true);
+    UARTprintf("Length: %d\n", strlen(str));
 
-    UARTSend((uint8_t *) str, strlen(str));
+    UARTSend(str, 4);
 }
 
 /**

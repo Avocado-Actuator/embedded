@@ -95,7 +95,6 @@ void MotorInit(uint32_t g_ui32SysClock)
     PWMPulseWidthSet(PWM0_BASE, PWM_OUT_4, 20);
     PWMOutputState(PWM0_BASE, PWM_OUT_4_BIT, true);
     PWMGenEnable(PWM0_BASE, PWM_GEN_2);
-    UARTprintf("initializing motor driver pins\n");
     //Set PQ1 Always high for enable
     GPIOPinTypeGPIOOutput(GPIO_PORTQ_BASE, GPIO_PIN_1);
     GPIOPinWrite(GPIO_PORTQ_BASE, GPIO_PIN_1,GPIO_PIN_1);
@@ -107,6 +106,7 @@ void MotorInit(uint32_t g_ui32SysClock)
     GPIOPinWrite(GPIO_PORTP_BASE, GPIO_PIN_0,GPIO_PIN_0);
     GPIOPinTypeGPIOOutput(GPIO_PORTP_BASE, GPIO_PIN_1);
     GPIOPinWrite(GPIO_PORTP_BASE, GPIO_PIN_1,GPIO_PIN_1);
+    UARTprintf("Motor driver initialized\n");
 }
 
 //Incremental PID control of velocity
