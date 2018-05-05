@@ -33,6 +33,12 @@ RSInit(uint32_t g_ui32SysClock){
     // Enable the UART interrupt.
     ROM_IntEnable(INT_UART7);
     ROM_UARTIntEnable(UART7_BASE, UART_INT_RX | UART_INT_RT);
+    addrmask = 0b00001111;
+    cmdmask = 0b00010000; // when you filter message with this, 1 is SET and 0 is GET
+    posmask = 0b00100000;
+    curmask = 0b01000000;
+    velmask = 0b10000000;
+    ADDRESS = 0x01;
     UARTprintf("RS485 initialized\n");
     return;
 }
@@ -74,46 +80,6 @@ UARTSend(const uint8_t *pui8Buffer, uint32_t ui32Count)
 }
 
 /**
- * Extracts token up to given end byte, placing into given token pointer.
- *
- * @param buffer - pointer to start of string from which to extract token
- * @param token - pointer to fill with token
- * @param endByte - byte to extract until
- * @param maxLen - maximum possible length, important in case message is
- *   corrupted or end byte does not exist in string
- * @return pointer to start of next token
- */
-char*
-getToken(char* buffer, char* token, char endByte, int maxLen) {
-    uint32_t counter = 0;
-    // index of filling token buffer
-    uint32_t token_index = 0;
-    while(*buffer != endByte && counter < maxLen) {
-        token[token_index] = *buffer;
-
-        ++counter;
-        ++token_index;
-        ++buffer;
-    }
-
-    // terminate string with null character
-    token[token_index] = '\0';
-    // advance buffer past end byte
-    return ++buffer;
-}
-
-/**
- * Calculates number of characters between two pointers.
- *
- * @param first - the first pointer, address must be less than second
- * @param second - the second pointer, address must be greater than first
- * @return number of characters between pointers
- */
-uint32_t distBetween(char* first, char* second) {
-    return (second - first)*sizeof(*first);
-}
-
-/**
  * Returns string corresponding to given enum value.
  *
  * @param par - enum value whose name to return
@@ -124,6 +90,20 @@ const char* getParameterName(enum Parameter par) {
         case Pos: return "Pos";
         case Vel: return "Vel";
         case Cur: return "Cur";
+        default: return "NOP";
+    }
+}
+
+/**
+ * Returns string corresponding to given enum value.
+ *
+ * @param par - enum value whose name to return
+ * @return the name of the enum value given
+ */
+const char* getCommandName(enum Command cmd) {
+    switch(cmd) {
+        case Get: return "Get";
+        case Set: return "Set";
         default: return "NOP";
     }
 }
@@ -149,7 +129,7 @@ sendData(enum Parameter par) {
     // MANUALLY SETTING BRAIN ADDRESS FOR NOW
     BRAIN_ADDRESS = 0;
 
-    char str[40];
+    char str[8];
     sprintf(str, "%d %f", BRAIN_ADDRESS, value);
     UARTprintf("\nMessage %s", str);
     UARTPrintFloat(value, true);
@@ -164,16 +144,15 @@ sendData(enum Parameter par) {
  * @param value - value to set parameter to
  */
 void
-setData(enum Parameter par, char* value) {
+setData(enum Parameter par, float* value) {
     UARTprintf("\nin setData\n");
 
-    float converted = strtof(value, NULL);
-    UARTPrintFloat(converted, false);
+    UARTprintf("Target value: %d\n", *value);
 
     switch(par) {
-        case Pos: setTargetAngle(converted); UARTprintf("New value: "); UARTPrintFloat(getTargetAngle(), false); break;
-        case Vel: setTargetVelocity(converted); UARTprintf("New value: "); UARTPrintFloat(getTargetVelocity(), false); break;
-        case Cur: setTargetCurrent(converted); UARTprintf("New value: "); UARTPrintFloat(getTargetCurrent(), false); break;
+        case Pos: setTargetAngle(*value); UARTprintf("New value: "); UARTPrintFloat(getTargetAngle(), false); break;
+        case Vel: setTargetVelocity(*value); UARTprintf("New value: "); UARTPrintFloat(getTargetVelocity(), false); break;
+        case Cur: setTargetCurrent(*value); UARTprintf("New value: "); UARTPrintFloat(getTargetCurrent(), false); break;
         case Tmp: UARTprintf("Invalid set, user tried to set temperature"); return;
         default: UARTprintf("Tried to set invaliad parameter, aborting"); return;
     }
@@ -199,49 +178,40 @@ handleUART(char* buffer, uint32_t length, bool verbose, bool echo) {
         UARTSend((uint8_t *)buffer, length);
     } else {
         UARTprintf("\n\nText: %s\n\n", buffer);
-        char tok[40] = "";
-        // initially tokenize on spaces
-        char endByte = ' ';
-
-        // MANUALLY SETTING ADDRESS
-        ADDRESS = 1;
 
         // get address
-        char* iter = getToken(buffer, tok, ' ', 40);
-        if(verbose) UARTprintf("Address: %s\n", tok);
+        char tempaddr = buffer[0] & addrmask;
+        if(verbose) UARTprintf("Address: %d\n", tempaddr);
 
-        if(((uint8_t) strtol(tok, NULL, 10)) != ADDRESS) {
+        if(tempaddr != ADDRESS) {
             if(verbose) UARTprintf("Not my address, abort");
             return false;
         }
 
-        // trailing pointer to end of last token
-        // can be used to calculate token length
-        // char* trail = buffer; // reset to iter on subsequent uses
-        // uint32_t token_length = distBetween(trail, iter) - 1;
-
-        // get either "get" or "set"
-        iter = getToken(iter, tok, ' ', 40);
-        if(verbose) UARTprintf("Command: %s\n", tok);
-
-        enum Command type = strcmp(tok, "get") == 0 ? Get : Set;
-        // if get then next token is last and ends at STOPBYTE
-        endByte = type == Get ? STOPBYTE : ' ';
+        enum Command type = buffer[0] & cmdmask ? Set : Get;
+        if(verbose) UARTprintf("Command: %s\n", getCommandName(type));
 
         // get parameter - { pos, vel, cur }
-        iter = getToken(iter, tok, endByte, 40);
-        if(verbose) UARTprintf("Parameter: %s\n", tok);
+        enum Parameter par;
 
-        enum Parameter par =
-                strcmp(tok, "pos") == 0 ? Pos
-                : strcmp(tok, "vel") == 0 ? Vel
-                : strcmp(tok, "cur") == 0 ? Cur : Tmp;
+        if (buffer[0] & posmask) par = Pos;
+        else if (buffer[0] & velmask) par = Vel;
+        else if (buffer[0] & curmask) par = Cur;
+        else {
+            if(verbose) UARTprintf("No parameter specified, abort");
+            return false;
+        }
+
+        if(verbose) UARTprintf("Parameter: %s\n", getParameterName(par));
 
         if(type == Set) {
             // if set command then get parameter value to set to
-            iter = getToken(iter, tok, STOPBYTE, 40);
-            if(verbose) UARTprintf("Set val: %s\n", tok);
-            setData(par, tok);
+            // I'm really so sorry about this notation. Since the first byte is the addr/command/parameter,
+            // if the cmd is Set then the next entity is a value. This value MUST be a single float
+            // which takes the next four bytes of buffer (followed by STOPBYTE)
+            float* value = (float *)(&buffer[1]);
+            if(verbose) UARTprintf("Set val: %d\n", value);
+            setData(par, value);
         } else {
             sendData(par);
         }
@@ -264,11 +234,11 @@ UARTIntHandler(void)
     // Clear the asserted interrupts.
     ROM_UARTIntClear(UART7_BASE, ui32Status);
     // Initialize recv buffer
-    char recv[40] = "";
+    char recv[8] = "";
     uint32_t ind = 0;
     char curr = ROM_UARTCharGet(UART7_BASE);
     // Loop while there are characters in the receive FIFO.
-    while(curr != STOPBYTE && ind < 40)
+    while(curr != STOPBYTE && ind < 8)
     {
         recv[ind] = curr;
         ind++;
@@ -306,13 +276,8 @@ UARTSetWrite(){
     return;
 }
 
-void UARTSetAddress(uint8_t addr) {
-    ADDRESS = addr;
-}
-
-uint8_t UARTGetAddress() {
-    return ADDRESS;
-}
+uint8_t UARTGetAddress() { return ADDRESS; }
+void UARTSetAddress(uint8_t addr) { ADDRESS = addr; }
 
 void UARTPrintFloat(float val, bool verbose) {
     char str[80]; // pretty arbitrarily chosen
