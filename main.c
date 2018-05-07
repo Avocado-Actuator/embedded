@@ -98,6 +98,7 @@ main(void) {
     TempInit(g_ui32SysClock);
     UARTprintf("Initialized\n\n");
 
+    UARTSetAddress(0x01);
     //testSpin(5000,80);
     //disableDriver();
 

@@ -7,8 +7,7 @@
 
 #include "rs485.h"
 
-uint8_t ADDRESS,
-        BRAIN_ADDRESS;
+uint8_t ADDRESS, BRAIN_ADDRESS;
 
 void
 RSInit(uint32_t g_ui32SysClock){
@@ -38,7 +37,8 @@ RSInit(uint32_t g_ui32SysClock){
     posmask = 0b00100000;
     curmask = 0b01000000;
     velmask = 0b10000000;
-    ADDRESS = 0x01;
+    heartmask = 0b11110000;
+    BRAIN_ADDRESS = 0x00;
     UARTprintf("RS485 initialized\n");
     return;
 }
@@ -56,7 +56,7 @@ UARTSend(const uint8_t *pui8Buffer, uint32_t ui32Count)
     // Add CRC byte to message
     uint8_t crc = crc8(0, pui8Buffer, ui32Count);
     // Construct address/flags byte prefix
-    uint8_t prefix = 0x00;
+    uint8_t prefix = 0x00 | BRAIN_ADDRESS;
     // Set transceiver rx/tx pin high to send
     UARTSetWrite();
     bool space = true;
@@ -78,6 +78,31 @@ UARTSend(const uint8_t *pui8Buffer, uint32_t ui32Count)
         *pui8Buffer++;
     }
     // Send the CRC for error-checking
+    space = ROM_UARTCharPutNonBlocking(UART7_BASE, crc);
+    while (!space){
+        space = ROM_UARTCharPutNonBlocking(UART7_BASE, crc);
+    }
+    // Send the stopbyte
+    space = ROM_UARTCharPutNonBlocking(UART7_BASE, STOPBYTE);
+    while (!space) {
+        space = ROM_UARTCharPutNonBlocking(UART7_BASE, STOPBYTE);
+    }
+}
+
+void heartBeat(){
+    uint8_t beat = 0;
+    //room for four flags:
+    // limitingflag if the brain is asking for some performance level
+    // but the avocado has limited the performance due to current/temp safety levels
+    // TODO: come up with things an avocado might want to tell the brain
+    beat = BRAIN_ADDRESS; // OR other flags here for status updates to the brain
+    bool space = true;
+    uint8_t crc = crc8(0, &beat, 1);
+    UARTSetWrite();
+    space = ROM_UARTCharPutNonBlocking(UART7_BASE, beat);
+    while (!space){
+        space = ROM_UARTCharPutNonBlocking(UART7_BASE, beat);
+    }
     space = ROM_UARTCharPutNonBlocking(UART7_BASE, crc);
     while (!space){
         space = ROM_UARTCharPutNonBlocking(UART7_BASE, crc);
@@ -194,6 +219,11 @@ handleUART(char* buffer, uint32_t length, bool verbose, bool echo) {
             return false;
         }
 
+        if (buffer[0] & heartmask == 0) {
+            // called for heartbeat messages, where brain sends just address and 0's in prefix byte
+            heartBeat();
+        }
+
         enum Command type = buffer[0] & cmdmask ? Set : Get;
         if(verbose) UARTprintf("Command: %s\n", getCommandName(type));
 
@@ -216,7 +246,7 @@ handleUART(char* buffer, uint32_t length, bool verbose, bool echo) {
             // if the cmd is Set then the next entity is a value. This value MUST be a single float
             // which takes the next four bytes of buffer (followed by STOPBYTE)
             float* value = (float *)(&buffer[1]);
-            if(verbose) UARTprintf("Set val: %d\n", value);
+            if(verbose) UARTPrintFloat("Set val: %d\n", *value);
             setData(par, value);
         } else {
             sendData(par);

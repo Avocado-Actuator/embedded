@@ -39,10 +39,9 @@ uint8_t UARTGetAddress(void);
 
 void UARTPrintFloat(float, bool);
 
-uint8_t ADDRESS;
 uint32_t uartSysClock;
 static uint8_t STOPBYTE = '\0';
-uint8_t cmdmask, addrmask, curmask, posmask, velmask;
+uint8_t cmdmask, addrmask, curmask, posmask, velmask, heartmask;
 
 enum Command {
     Get = 0,
