@@ -40,8 +40,14 @@ uint8_t UARTGetAddress(void);
 void UARTPrintFloat(float, bool);
 
 uint32_t uartSysClock;
-static uint8_t STOPBYTE = '\0';
-uint8_t cmdmask, addrmask, curmask, posmask, velmask, heartmask;
+static uint8_t STOPBYTE = '!';
+uint8_t cmdmask, parmask, heartmask, addrmask, posval, curval, velval, tempval;
+
+union Flyte
+{
+  float f;
+  uint8_t bytes[sizeof(float)];
+};
 
 enum Command {
     Get = 0,
