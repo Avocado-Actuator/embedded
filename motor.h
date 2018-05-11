@@ -33,18 +33,21 @@ float KP_angle;
 float KI_angle;
 float KD_angle;
 
-int flag;
+float KP_current;
+float KI_current;
+float KD_current;
 
 uint32_t Time;
 uint8_t time_flag_200ms;
 uint8_t time_flag_1000ms;
-uint8_t time_flag_2ms;
+uint8_t time_flag_20ns;
 
 void Timer0IntHandler(void);
 void MotorInit(uint32_t);
-void VelocityControl(void);
-void PositionControl(void);
-void PositionControlCS(void);
+void CurrentControl(float);
+void VelocityControl(float);
+void PositionControl(float);
+
 
 float getAngle(void);
 void setAngle(float);
@@ -58,7 +61,10 @@ float getTargetVelocity(void);
 void setTargetVelocity(float);
 void updateVelocity(void);
 
-void testSpin(uint32_t, uint32_t);
+void PWMoutput(uint32_t, uint32_t);
+uint32_t getPWM(void);
+
 void brake(void);
 void disableDriver(void);
+void enableDriver(void);
 #endif /* MOTOR_H_ */
