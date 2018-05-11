@@ -21,5 +21,5 @@ Instructions for using CCS with this repo:
       ![Predefined Symbols](https://raw.githubusercontent.com/Avocado-Actuator/embedded/assets/images/predefined_symbols.png)
     - Finally, under `Build -> ARM Compiler -> Basic Options` set the `Set C system stack size` option to `65536`.
       ![Stack Size](https://raw.githubusercontent.com/Avocado-Actuator/embedded/assets/images/stack_size.png)
-7. Go ahead and build! If something is still wrong let us know and we'll try and help :)
+6. Go ahead and build! If something is still wrong let us know and we'll try and help :)
 
