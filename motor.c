@@ -8,15 +8,18 @@ float   frequency,
         duty;
 int     direction=-1;//clockwise if direction is 1, counterclockwise if direcion=-1
 
-// velocity
-float   VELO,
-        TARGET_VELO,
-        velocityErrorInt;
-
 // angle
 float   ANGLE,
         TARGET_ANGLE,
+        PrevAngle,
         angleErrorInt;
+
+// velocity
+float   VELO,
+        TARGET_VELO,
+        lastVeloError,
+        prevVeloError,
+        outputCurrent;
 
 // current
 float   CUR,
@@ -63,9 +66,6 @@ void MotorInit(uint32_t g_ui32SysClock)
     KI_current=0;
     KD_current=0;
 
-    //setAngle(0);
-    setTargetAngle(200);
-    currentAngleError=0;
     /************** Initialization for timer (1ms)  *****************/
     //Enable the timer peripherals
     ROM_SysCtlPeripheralEnable(SYSCTL_PERIPH_TIMER0);
@@ -134,15 +134,18 @@ void setTargetVelocity(float newVelocity) { TARGET_VELO = newVelocity; }
 
 // unit: degree per second
 void UpdateVelocity() {
+    float diff;
 	if(direction==1){//clockwise
-		setVelocity(((getAngle()- PrevAngle)%360)/ 0.00002); // assumes measuring velocity every 20ns
+	    diff= getAngle()- PrevAngle;
 	}
 	else{
-		setVelocity((( PrevAngle - getAngle())%360)/ 0.00002);
+	    diff= PrevAngle - getAngle();
 	}
+    diff=diff>0?diff:diff+360;
+	setVelocity(diff/ 0.00002); // assumes measuring velocity every 20ns
 }
 
-void PWMout(uint32_t freq, uint32_t dut){
+void PWMoutput(uint32_t freq, uint32_t dut){
     PWMGenPeriodSet(PWM0_BASE, PWM_GEN_2, 1875000/freq);
     PWMPulseWidthSet(PWM0_BASE, PWM_GEN_2, 1875000/freq*dut/100);
 }
@@ -154,8 +157,7 @@ uint32_t getPWM(){
 
 
 void brake(){
-    flag=1;
-    testSpin(5000,0);
+    PWMoutput(5000,0);
 	UARTprintf("\nbraking");
     //untested
     //GPIOPinWrite(GPIO_PORTP_BASE, GPIO_PIN_1,0);
@@ -177,10 +179,13 @@ void PositionControl(float target)
     float error = target - getAngle();
 	
 	if ( error<=5 && error>=-5){//if reach the target position, trigger break
+	    //maybe you want to hold it instead of brake like
+	    //VelocityControl(0);
 		brake();
 		return;
 	}
-    error=(error*direction)%360;
+    error*=direction;
+    error=error>0?error:error+360;
     angleErrorInt+=error;
     if(angleErrorInt>=300){
         angleErrorInt=300;
@@ -198,9 +203,9 @@ void PositionControl(float target)
 void VelocityControl(float target)
 {
     float error = target - getVelocity();
-	veloErrorInt+=error
-
-    outputCurrent=KP_velocity*error + KI_velocity*veloErrorInt;
+    outputCurrent+=KP_velocity*(error-lastVeloError) + KI_velocity*error + KD_velocity*(error+prevVeloError-2*lastVeloError); //P*(e(k)-e(k-1))+I*e(k)+D*((e(k)-e(k-1))-(e(k-1)-e(k-2)))
+    prevVeloError=lastVeloError;
+    lastVeloError=error;
 
     //regulator
     if (outputCurrent<0)
@@ -212,14 +217,8 @@ void VelocityControl(float target)
 //PI control
 void CurrentControl(float target)
 {
-    error=target-CUR;
-    curErrorInt+=error;
- //regulator
- //   if(curErrorInt>=300){
- //       curErrorInt=300;
- //   }
-
-	float duty+=KP_current*(error-lastCurError) + KI_current*error + KD_current*(error+prevCurError-2*lastCurError);//P*(e(k)-e(k-1))+I*e(k)+D*((e(k)-e(k-1))-(e(k-1)-e(k-2)))
+    float error=target-getCurrent();//current sample rate should be consistent with the position
+	duty+=KP_current*(error-lastCurError) + KI_current*error + KD_current*(error+prevCurError-2*lastCurError);//P*(e(k)-e(k-1))+I*e(k)+D*((e(k)-e(k-1))-(e(k-1)-e(k-2)))
 	prevCurError=lastCurError;
 	lastCurError=error;
     //regulator
