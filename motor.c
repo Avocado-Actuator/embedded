@@ -22,6 +22,13 @@ float   Angle,
         angleErrorInt,
         angleErrorDiff;
 
+uint8_t STATUS;
+// LSB of STATUS byte is estop behaviour: 1 is hold position until safety threshold reached, 0 is kill motor power
+
+void setEStop(uint8_t action) { STATUS &= 0b11111110; STATUS |= action; }
+uint8_t getEStop() { return STATUS & 0b00000001; }
+uint8_t getStatus() { return STATUS; }
+
 void Timer0IntHandler(void)
 {
     // Clear the timer interrupt.

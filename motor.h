@@ -59,6 +59,10 @@ float getTargetVelocity(void);
 void setTargetVelocity(float);
 void updateVelocity(void);
 
+uint8_t getEStop(void);
+void setEStop(uint8_t);
+uint8_t getStatus(void);
+
 void testSpin(uint32_t, uint32_t);
 void brake(void);
 void disableDriver(void);

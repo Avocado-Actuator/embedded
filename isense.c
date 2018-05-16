@@ -7,7 +7,7 @@
 
 #include "isense.h"
 
-float Current, TargetCurrent, PrevCurrent;
+float Current, TargetCurrent, PrevCurrent, MaxCurrent;
 
 void CurrentSenseInit(void) {
     // Display the setup on the console.
@@ -36,6 +36,8 @@ float getCurrent() { return Current; }
 void setCurrent(float newCurrent) { Current = newCurrent; }
 float getTargetCurrent() { return TargetCurrent; }
 void setTargetCurrent(float newCurrent) { TargetCurrent = newCurrent; }
+float getMaxCurrent() { return MaxCurrent; }
+void setMaxCurrent(float newMaxCurrent) { MaxCurrent = newMaxCurrent; }
 
 void updateCurrent() {
     ADCProcessorTrigger(ADC0_BASE, 2); // Trigger the ADC conversion.
