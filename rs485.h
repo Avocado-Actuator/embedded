@@ -42,7 +42,7 @@ void UARTPrintFloat(float, bool);
 uint32_t uartSysClock;
 uint8_t BROADCASTADDR;
 static uint8_t STOPBYTE = '!';
-uint8_t cmdmask, parmask, posval, curval, velval, tempval, addrval, statval, estopval, maxcurval;
+uint8_t cmdmask, parmask;
 
 union Flyte
 {
@@ -55,15 +55,17 @@ enum Command {
     Set = 1
 };
 
+uint8_t MAX_PARAMETER_VALUE = 9;
+
 enum Parameter {
-    Pos = 0,
-    Vel = 1,
-    Cur = 2,
-    Tmp = 3,
-    Max = 4,
-    Sta = 5,
-    Est = 6,
-    Adr = 7
+    Adr     = 2,
+    Tmp     = 3,
+    Cur     = 4,
+    Vel     = 5,
+    Pos     = 6,
+    MaxCur  = 7,
+    EStop   = 8,
+    Status  = 9
 };
 
 #endif /* RS485_H_ */

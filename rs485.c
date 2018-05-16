@@ -34,14 +34,6 @@ RSInit(uint32_t g_ui32SysClock){
     ROM_UARTIntEnable(UART7_BASE, UART_INT_RX | UART_INT_RT);
     cmdmask = 0b00000001; // when you filter message with this, 1 is SET and 0 is GET
     parmask = 0b00001110; // this gives you just the parameter selector bits
-    addrval = 0b00000000; // 000 selector bits
-    tempval = 0b00000010; // 001 selector bits
-    curval = 0b00000100; // 010 selector bits
-    velval = 0b00000110; // 011 selector bits
-    posval = 0b00001000; // 100 selector bits
-    maxcurval = 0b00001010; // 101 selector bits
-    estopval = 0b00001100; // 110 selector bits
-    statval = 0b00001110; // 111 selector bits
     BRAIN_ADDRESS = 0x00;
     BROADCASTADDR = 0xFF;
     UARTprintf("RS485 initialized\n");
@@ -106,9 +98,9 @@ const char* getParameterName(enum Parameter par) {
         case Vel: return "Vel";
         case Cur: return "Cur";
         case Tmp: return "Tmp";
-        case Max: return "Max"; // Max Current
-        case Sta: return "Sta"; // status register
-        case Est: return "Est"; // Emergency stop behavior, kill motor or hold position
+        case MaxCur: return "MaxCur"; // Max Current
+        case Status: return "Status"; // status register
+        case EStop: return "EStop"; // Emergency stop behavior, kill motor or hold position
         case Adr: return "Adr";
         default: return "NOP";
     }
@@ -144,9 +136,9 @@ sendData(enum Parameter par) {
         case Vel: UARTprintf("Current vel: "); UARTPrintFloat(getVelocity(), false); value.f = getVelocity(); break;
         case Cur: UARTprintf("Current current: "); UARTPrintFloat(getCurrent(), false); value.f = getCurrent(); break;
         case Tmp: UARTprintf("Current temperature: "); UARTPrintFloat(getTemp(), false); value.f = getTemp(); break;
-        case Max: UARTprintf("Max Current Setting: "); UARTPrintFloat(getMaxCurrent(), false); value.f = getMaxCurrent(); break;
-        case Est: UARTprintf("Emergency Stop Behaviour: "); UARTPrintFloat(getEStop(), false); value.f = getEStop(); break;
-        case Sta: UARTprintf("Status Register: "); UARTPrintFloat(getStatus(), false); value.f = getStatus(); break;
+        case MaxCur: UARTprintf("Max Current Setting: "); UARTPrintFloat(getMaxCurrent(), false); value.f = getMaxCurrent(); break;
+        case EStop: UARTprintf("Emergency Stop Behaviour: "); UARTPrintFloat(getEStop(), false); value.f = getEStop(); break;
+        case Status: UARTprintf("Status Register: "); UARTPrintFloat(getStatus(), false); value.f = getStatus(); break;
         default: UARTprintf("Asked for invalid parameter, aborting"); status = 0x00; break;
     }
     if (status == 0x00){
@@ -175,8 +167,8 @@ setData(enum Parameter par, float value) {
         case Vel: setTargetVelocity(value); UARTprintf("New value: "); UARTPrintFloat(getTargetVelocity(), false); status = 0x01; break;
         case Cur: setTargetCurrent(value); UARTprintf("New value: "); UARTPrintFloat(getTargetCurrent(), false); status = 0x01; break;
         case Adr: UARTSetAddress(value); UARTprintf("New value: "); UARTPrintFloat(UARTGetAddress(), false); status = 0x01; break;
-        case Max: setMaxCurrent(value); UARTprintf("New value: "); UARTPrintFloat(getMaxCurrent(), false); status = 0x01; break;
-        case Est: setEStop(value); UARTprintf("New value: "); UARTPrintFloat(getEStop(), false); status = 0x01; break;
+        case MaxCur: setMaxCurrent(value); UARTprintf("New value: "); UARTPrintFloat(getMaxCurrent(), false); status = 0x01; break;
+        case EStop: setEStop(value); UARTprintf("New value: "); UARTPrintFloat(getEStop(), false); status = 0x01; break;
         case Tmp: UARTprintf("Invalid set, user tried to set temperature"); status = 0x00; break;
         default: UARTprintf("Tried to set invaliad parameter, aborting"); status = 0x00; break;
     }
@@ -226,17 +218,8 @@ handleUART(char* buffer, uint32_t length, bool verbose, bool echo) {
         if(verbose) UARTprintf("Command: %s\n", getCommandName(type));
 
         // get parameter - { pos, vel, cur }
-        enum Parameter par;
-        uint8_t selector = buffer[1] & parmask;
-        if (selector == posval) par = Pos;
-        else if (selector == velval) par = Vel;
-        else if (selector == curval) par = Cur;
-        else if (selector == tempval) par = Tmp;
-        else if (selector == addrval) par = Adr;
-        else if (selector == maxcurval) par = Max;
-        else if (selector == estopval) par = Est;
-        else if (selector == statval) par = Sta;
-        else {
+        enum Parameter par = buffer[1] & parmask;
+        if(par > MAX_PARAMETER_VALUE) {
             if(verbose) UARTprintf("No parameter specified, abort");
             return false;
         }
