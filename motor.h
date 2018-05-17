@@ -62,6 +62,14 @@ void updateVelocity(void);
 uint8_t getEStop(void);
 void setEStop(uint8_t);
 uint8_t getStatus(void);
+void setStatus(uint8_t);
+//status flags
+uint8_t ESTOP_HOLD,
+        ESTOP_KILL,
+        COMMAND_SUCCESS,
+        COMMAND_FAILURE,
+        OUTPUT_LIMITING,
+        OUTPUT_FREE;
 
 void testSpin(uint32_t, uint32_t);
 void brake(void);

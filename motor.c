@@ -23,11 +23,15 @@ float   Angle,
         angleErrorDiff;
 
 uint8_t STATUS;
+
 // LSB of STATUS byte is estop behaviour: 1 is hold position until safety threshold reached, 0 is kill motor power
+// next bit up is success or failure of most recent command. 1 success, 0 failure
+// next up is whether output performance is being limited (1) or free (0)
 
 void setEStop(uint8_t action) { STATUS &= 0b11111110; STATUS |= action; }
 uint8_t getEStop() { return STATUS & 0b00000001; }
 uint8_t getStatus() { return STATUS; }
+void setStatus(uint8_t newflag){ STATUS &= newflag; }
 
 void Timer0IntHandler(void)
 {
@@ -52,6 +56,14 @@ void Timer0IntHandler(void)
 void MotorInit(uint32_t g_ui32SysClock)
 {
     // variable inits
+
+    ESTOP_HOLD      = 0b11111111;
+    ESTOP_KILL      = 0b11111110;
+    COMMAND_SUCCESS = 0b11111111;
+    COMMAND_FAILURE = 0b11111101;
+    OUTPUT_LIMITING = 0b11111111;
+    OUTPUT_FREE     = 0b11111011;
+
     Time=0;
     time_flag_200ms = 0;
     time_flag_1000ms = 0;

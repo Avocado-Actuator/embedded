@@ -40,7 +40,6 @@ uint8_t UARTGetAddress(void);
 void UARTPrintFloat(float, bool);
 
 uint32_t uartSysClock;
-uint8_t BROADCASTADDR;
 static uint8_t STOPBYTE = '!';
 uint8_t cmdmask, parmask;
 
@@ -55,7 +54,7 @@ enum Command {
     Set = 1
 };
 
-uint8_t MAX_PARAMETER_VALUE = 9;
+uint8_t MAX_PARAMETER_VALUE;
 
 enum Parameter {
     Adr     = 2,

@@ -17,11 +17,9 @@ address    parameter value (optional)
 Separated nibbles below
 
 ```
-     1b get/set (1 = set, 0 = get)
-                   |
-    ••••        ••••
-     ||          |
-  4b unused   3b parameter
+1b get/set (1=set, 0=get) 3b parameter
+              |            |||
+              ••••        •••• 
 ```
 
 ### Parameters
@@ -45,3 +43,8 @@ Listing format just gives 3 bits to specify parameter type
 ### Heartbeat
 
 Requires no response, broadcasted to all connected devices with `11111111` address (address reserved for heartbeat)
+
+### Command responses
+
+Every command from the brain (except heartbeats) should be responded to
+with a status packet (addr, status register byte, crc, stopbyte)
