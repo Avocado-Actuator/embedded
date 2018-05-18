@@ -59,9 +59,9 @@ float getTargetVelocity(void);
 void setTargetVelocity(float);
 void updateVelocity(void);
 
-uint8_t getEStop(void);
+uint8_t* getEStop(void);
 void setEStop(uint8_t);
-uint8_t getStatus(void);
+uint8_t* getStatus(void);
 void setStatus(uint8_t);
 //status flags
 uint8_t ESTOP_HOLD,

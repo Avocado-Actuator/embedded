@@ -50,12 +50,10 @@ RSInit(uint32_t g_ui32SysClock){
 void
 UARTSend(const uint8_t *pui8Buffer, uint32_t ui32Count)
 {
-    // TODO: implement construction of prefix bytes by ORing masks
-    // TODO: create data flags avocados can flip for the brain
     uint8_t msg[8];
     msg[0] = BRAIN_ADDRESS;
     int i, len;
-    len = 0;
+    len = 1;
     for (i = 0; i < ui32Count; i++){
         msg[i+1] = pui8Buffer[i];
         len++;
@@ -65,18 +63,15 @@ UARTSend(const uint8_t *pui8Buffer, uint32_t ui32Count)
     // Set transceiver rx/tx pin high to send
     UARTSetWrite();
     bool space = true;
-    asdgafga; // Reminder to continue replacing pui8buffer with msg. make sure to get the *'s right
     // Loop while there are more characters to send.
-    while(ui32Count--)
-    {
+    for (i = 0; i < len; i++) {
         // Write the next character to the UART.
         // putchar returns false if the send FIFO is full
-        space = ROM_UARTCharPutNonBlocking(UART7_BASE, *pui8Buffer);
+        space = ROM_UARTCharPutNonBlocking(UART7_BASE, msg[i]);
         // If send FIFO is full, wait until we can put the char in
         while (!space){
-            space = ROM_UARTCharPutNonBlocking(UART7_BASE, *pui8Buffer);
+            space = ROM_UARTCharPutNonBlocking(UART7_BASE, msg[i]);
         }
-        *pui8Buffer++;
     }
     // Send the CRC for error-checking
     space = ROM_UARTCharPutNonBlocking(UART7_BASE, crc);
@@ -139,11 +134,11 @@ sendData(enum Parameter par) {
         case Cur: UARTprintf("Current current: "); UARTPrintFloat(getCurrent(), false); value.f = getCurrent(); setStatus(COMMAND_SUCCESS); break;
         case Tmp: UARTprintf("Current temperature: "); UARTPrintFloat(getTemp(), false); value.f = getTemp(); setStatus(COMMAND_SUCCESS); break;
         case MaxCur: UARTprintf("Max Current Setting: "); UARTPrintFloat(getMaxCurrent(), false); value.f = getMaxCurrent(); setStatus(COMMAND_SUCCESS); break;
-        case EStop: UARTprintf("Emergency Stop Behaviour: "); UARTprintf(getEStop(), false); value.bytes[0] = getEStop(); setStatus(COMMAND_SUCCESS); UARTSend(value.bytes[0], 1); return;
-        case Status: UARTprintf("Status Register: "); UARTprintf(getStatus(), false); value.bytes[0] = getStatus(); setStatus(COMMAND_SUCCESS); UARTSend(value.bytes[0], 1); return;
+        case EStop: UARTprintf("Emergency Stop Behaviour: "); UARTprintf(*(getEStop()), false); value.bytes[0] = *(getEStop()); setStatus(COMMAND_SUCCESS); UARTSend(value.bytes[0], 1); return;
+        case Status: UARTprintf("Status Register: "); UARTprintf(*(getStatus()), false); value.bytes[0] = *(getStatus()); setStatus(COMMAND_SUCCESS); UARTSend(value.bytes[0], 1); return;
         default: UARTprintf("Asked for invalid parameter, aborting"); setStatus(COMMAND_FAILURE); break;
     }
-    if (!(getStatus() & ~COMMAND_FAILURE)){ // true if command failed
+    if (!(*(getStatus()) & ~COMMAND_FAILURE)){ // true if command failed
         UARTSend(getStatus(), 1);
     } else {
         UARTSend(value.bytes, 4);
@@ -167,7 +162,7 @@ setData(enum Parameter par, union Flyte * value) {
         case Cur: setTargetCurrent(value->f); UARTprintf("New value: "); UARTPrintFloat(getTargetCurrent(), false); setStatus(COMMAND_SUCCESS); break;
         case Adr: UARTSetAddress(value->bytes[0]); UARTprintf("New value: "); UARTprintf(UARTGetAddress(), false); setStatus(COMMAND_SUCCESS); break;
         case MaxCur: setMaxCurrent(value->f); UARTprintf("New value: "); UARTPrintFloat(getMaxCurrent(), false); setStatus(COMMAND_SUCCESS); break;
-        case EStop: setEStop(value->bytes[0]); UARTprintf("New value: "); UARTprintf(getEStop(), false); setStatus(COMMAND_SUCCESS); break;
+        case EStop: setEStop(value->bytes[0]); UARTprintf("New value: "); UARTprintf(*(getEStop()), false); setStatus(COMMAND_SUCCESS); break;
         case Tmp: UARTprintf("Invalid set, user tried to set temperature"); setStatus(COMMAND_FAILURE); break;
         default: UARTprintf("Tried to set invaliad parameter, aborting"); setStatus(COMMAND_FAILURE); break;
     }

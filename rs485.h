@@ -57,14 +57,14 @@ enum Command {
 uint8_t MAX_PARAMETER_VALUE;
 
 enum Parameter {
-    Adr     = 2,
-    Tmp     = 3,
-    Cur     = 4,
-    Vel     = 5,
-    Pos     = 6,
-    MaxCur  = 7,
-    EStop   = 8,
-    Status  = 9
+    Adr     = 0,
+    Tmp     = 1,
+    Cur     = 2,
+    Vel     = 3,
+    Pos     = 4,
+    MaxCur  = 5,
+    EStop   = 6,
+    Status  = 7
 };
 
 #endif /* RS485_H_ */
