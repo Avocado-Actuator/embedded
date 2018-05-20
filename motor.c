@@ -29,8 +29,8 @@ uint8_t STATUS;
 // next up is whether output performance is being limited (1) or free (0)
 
 void setEStop(uint8_t action) { STATUS &= 0b11111110; STATUS |= action; }
-uint8_t* getEStop() { return STATUS & 0b00000001; }
-uint8_t* getStatus() { return STATUS; }
+uint8_t getEStop() { return STATUS & 0b00000001; }
+uint8_t getStatus() { return STATUS; }
 void setStatus(uint8_t newflag){ STATUS &= newflag; }
 
 void Timer0IntHandler(void)
