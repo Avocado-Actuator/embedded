@@ -98,7 +98,7 @@ main(void) {
     TempInit(g_ui32SysClock);
     UARTprintf("Initialized\n\n");
 
-    //testSpin(5000,80);
+    testSpin(5000,20);
     //disableDriver();
 
     // Loop forever echoing data through the UART.
@@ -116,7 +116,7 @@ main(void) {
         }
         */
 
-        if (time_flag_2ms==1){
+        /*if (time_flag_2ms==1){
             time_flag_2ms=0;
 //            updateAngle();
             updateAngle();
@@ -131,14 +131,14 @@ main(void) {
             // Get current data
             // updateCurrent();
             // UARTprintf("Current: %d\n", getCurrent());
-        }
+        }*/
 
-        if (time_flag_1000ms == 1){
+        /*if (time_flag_1000ms == 1){
             time_flag_1000ms = 0;
 //            updateTemp();
 //            UARTprintf("Temp: %d\n", getTemp());
             UARTprintf("\nAngle: ");
             UARTPrintFloat(getAngle(), 0);
-        }
+        }*/
     }
 }
