@@ -64,11 +64,53 @@ ConsoleInit(void)
     // Initialize the UART for console I/O.
     UARTStdioConfig(0, 115200, 16000000);
 
+
+
+   ROM_SysCtlPeripheralEnable(SYSCTL_PERIPH_UART0);
+   ROM_SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOA);
+
+
+
+   //
+   // Enable the UART interrupt.
+   //
+   ROM_IntEnable(INT_UART0);
+   ROM_UARTIntEnable(UART0_BASE, UART_INT_RX | UART_INT_RT);
+
 }
 
 //*****************************************************************************
 
+void
+UARTIntHandler0(void)
+{
+    uint32_t ui32Status;
 
+    //
+    // Get the interrrupt status.
+    //
+    ui32Status = ROM_UARTIntStatus(UART0_BASE, true);
+
+    //
+    // Clear the asserted interrupts.
+    //
+    ROM_UARTIntClear(UART0_BASE, ui32Status);
+
+    //
+    // Loop while there are characters in the receive FIFO.
+    //
+    while(ROM_UARTCharsAvail(UART0_BASE))
+    {
+        //
+        // Read the next character from the UART and write it back to the UART.
+        //
+        ROM_UARTCharPutNonBlocking(UART0_BASE,
+                                   ROM_UARTCharGetNonBlocking(UART0_BASE));
+
+        zeroPosition();
+
+    }
+}
 //*****************************************************************************
 //
 // Main function
@@ -102,13 +144,16 @@ main(void) {
     TempInit(g_ui32SysClock);
     UARTprintf("Initialized\n\n");
 
-    PWMoutput(5000,10);
+    PWMoutput(5000,0);
     //disableDriver();
 
+    int dut=0;
+    int f=1;
     // Loop forever echoing data through the UART.
     while(1)
     {
         // Check the busy flag in the uart7 register. If not busy, set transceiver pin low
+
         if (UARTReady()){
             UARTSetRead();
         }
@@ -122,7 +167,6 @@ main(void) {
 /*
         if (time_flag_2ms==1){
             time_flag_2ms=0;
-//            updateAngle();
             updateAngle();
             if(flag==0)
             {PositionControl();}
@@ -139,16 +183,28 @@ main(void) {
 */
         if (time_flag_1000ms == 1){
             time_flag_1000ms = 0;
-            updateTemp();
-            //UARTprintf("Temp: %d\n", getTemp());
+            if(f==1){
+                dut+=5;
+                if(dut>=60){
+                    f=0;
+                }
+            }
+            else{
+                dut-=5;
+                if(dut<=0){
+                    f=1;
+                }
+
+            }
+            PWMoutput(5000,dut);
+            UARTprintf("dut: %d\n", dut);
+            UARTprintf("getPWM: %d\n\n",(int)getPWM());
+            //updateTemp();
+            //UARTprintf("Temp: %d\n", (int)getTemp());
+            //updateCurrent();
+            //UARTprintf("\nCurrent: %d\n", (int)getCurrent());
             //updateAngle();
             //UARTprintf("Angle: %d\n", (int)getAngle());
-            //UARTPrintFloat(getTemp(),False)
-            updateCurrent();
-            UARTprintf("\nCurrent: %d\n", (int)getCurrent());
-            //UARTPrintFloat(getCurrent(),false);
-            //UARTprintf("\nAngle: ");
-            //UARTPrintFloat(getAngle(), 0);
         }
     }
 }
