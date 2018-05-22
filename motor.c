@@ -109,6 +109,8 @@ void MotorInit(uint32_t g_ui32SysClock)
 	//Set PP1 as nBreak, brake if PP1 is low
     GPIOPinTypeGPIOOutput(GPIO_PORTP_BASE, GPIO_PIN_1);
     GPIOPinWrite(GPIO_PORTP_BASE, GPIO_PIN_1,GPIO_PIN_1);
+
+    zeroPosition();
 }
 
 float getAngle() { return ANGLE; }
@@ -122,8 +124,10 @@ void updateAngle() {
     readAverageData(&angle, &mag, &agc);
     section = getSection();
     PrevAngle = getAngle();
+    //UARTPrintFloat(float val, bool verbose)
     // Calculate final angle position in degrees
     setAngle(calcFinalAngle(angle, section));
+    UARTprintf("final angle: %d\n\n", (int)getAngle());
     return;
 }
 
@@ -135,6 +139,7 @@ void setTargetVelocity(float newVelocity) { TARGET_VELO = newVelocity; }
 // unit: degree per second
 void UpdateVelocity() {
     float diff;
+    /*
 	if(direction==1){//clockwise
 	    diff= getAngle()- PrevAngle;
 	}
@@ -142,10 +147,16 @@ void UpdateVelocity() {
 	    diff= PrevAngle - getAngle();
 	}
     diff=diff>0?diff:diff+360;
+    */
+    diff= getAngle()- PrevAngle;
 	setVelocity(diff/ 0.00002); // assumes measuring velocity every 20ns
 }
 
 void PWMoutput(uint32_t freq, uint32_t dut){
+    if(dut<0){
+        dut=-dut;
+        //changedirection
+    }
     PWMGenPeriodSet(PWM0_BASE, PWM_GEN_2, 1875000/freq);
     PWMPulseWidthSet(PWM0_BASE, PWM_GEN_2, 1875000/freq*dut/100);
 }
@@ -184,8 +195,8 @@ void PositionControl(float target)
 		brake();
 		return;
 	}
-    error*=direction;
-    error=error>0?error:error+360;
+    //error*=direction;
+    //error=error>0?error:error+360;
     angleErrorInt+=error;
     if(angleErrorInt>=300){
         angleErrorInt=300;
@@ -193,8 +204,6 @@ void PositionControl(float target)
     float outputVelo=KP_angle*error + KI_angle*angleErrorInt;// + KD_angle*angleErrorDiff;//P*e(k)+I*sigma(e)+D*(e(k)-e(k-1))
     //lastAngleError=currentAngleError;
     //regulator
-    if (outputVelo<0)
-        outputVelo=0;
 
 	VelocityControl(outputVelo);
 }
