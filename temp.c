@@ -24,15 +24,12 @@ void TempInit(uint32_t ui32SysClock){
     // control of these pins to the SSI hardware.  Consult the data sheet to
     // see which functions are allocated per pin.
     GPIOPinTypeSSI(GPIO_PORTB_BASE, GPIO_PIN_4 | GPIO_PIN_5);
-<<<<<<< HEAD
     GPIOPinTypeSSI(GPIO_PORTE_BASE,  GPIO_PIN_5);
 
     GPIOPinTypeGPIOInput(GPIO_PORTE_BASE,GPIO_PIN_4);
-=======
     GPIOPinTypeSSI(GPIO_PORTE_BASE, GPIO_PIN_5);
     
     GPIOPinTypeGPIOInput(GPIO_PORTE_BASE, GPIO_PIN_4);
->>>>>>> 0f93ba2b01e399dc8e1b32b3b682e168638d1e75
     // Configure and enable the SSI port for SPI master mode.  Use SSI0,
     // system clock supply, idle clock level low and active low clock in
     // freescale SPI mode, master mode, 1MHz SSI frequency, and 16-bit data.
@@ -54,10 +51,12 @@ void updateTemp(){
     uint32_t data;
     SSIDataPut(SSI1_BASE, 0);
     SSIDataGet(SSI1_BASE, &data);
+    //UARTprintf("before: %d\n", data>>4);
     data>>=2;
-    // float decimal=0.25*(data & 0x3);
+    float decimal=0.25*(data & 0x3);
+    int intergral=data>>2;
     PrevTemp = getTemp();
-    setTemp(data);
-    UARTprintf("Temp: %d\n", data);
+    setTemp(decimal+intergral);
+    //UARTprintf("after: %d\n", data);
     return;
 }
