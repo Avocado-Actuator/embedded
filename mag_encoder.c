@@ -219,6 +219,9 @@ void readAverageData(uint32_t* angle, uint32_t* mag, uint32_t* agc){
     uint32_t intBuffer[3];
     char charBuffer[4];
     uint32_t count, alarmHi, alarmLo;
+    *angle = 0;
+    *mag = 0;
+    *agc = 0;
     for (count = AVG_CYCLES; count; count--) {
         readData(&intBuffer[0], &intBuffer[1], &charBuffer[0], &charBuffer[1], &charBuffer[2]);
         *angle += intBuffer[0];
@@ -235,7 +238,7 @@ void readAverageData(uint32_t* angle, uint32_t* mag, uint32_t* agc){
     if (alarmHi){
         UARTprintf("Warning: High magnetic field \n");
     } else if (alarmLo) {
-        //UARTprintf("Warning: Low magnetic field \n");
+        UARTprintf("Warning: Low magnetic field \n");
     }
 }
 
@@ -248,6 +251,8 @@ void zeroPosition(void) {
 
     /* Read current angle position */
     recBuffer = readRegister(REG_DATA);
+
+
     recBuffer = sendNOP();
     angleValue = recBuffer & 0x3fff; // get rid of parity bit and error flag
 
