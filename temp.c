@@ -51,10 +51,12 @@ void updateTemp(){
     uint32_t data;
     SSIDataPut(SSI1_BASE, 0);
     SSIDataGet(SSI1_BASE, &data);
+    //UARTprintf("before: %d\n", data>>4);
     data>>=2;
-    // float decimal=0.25*(data & 0x3);
+    float decimal=0.25*(data & 0x3);
+    int intergral=data>>2;
     PrevTemp = getTemp();
-    setTemp(data);
-    UARTprintf("Temp: %d\n", data);
+    setTemp(decimal+intergral);
+    //UARTprintf("after: %d\n", data);
     return;
 }
