@@ -149,7 +149,6 @@ main(void) {
 
     int dut=0;
     int f=1;
-    // Loop forever echoing data through the UART.
     while(1)
     {
         // Check the busy flag in the uart7 register. If not busy, set transceiver pin low
@@ -164,25 +163,21 @@ main(void) {
             zeroPosition();
         }
         */
-/*
-        if (time_flag_2ms==1){
-            time_flag_2ms=0;
+
+        if (time_flag_20ns==1){
+            time_flag_20ns=0;
             updateAngle();
-            if(flag==0)
-            {PositionControl();}
-            else{
-                disableDriver();
-                break;
-            }
-            // updateVelocity();
+            UpdateVelocity();
+            PositionControl(200);
+
             // VelocityControl();
             // Get current data
-            // updateCurrent();
-            // UARTprintf("Current: %d\n", getCurrent());
         }
-*/
+
         if (time_flag_1000ms == 1){
             time_flag_1000ms = 0;
+
+            /*
             if(f==1){
                 dut+=5;
                 if(dut>=60){
@@ -196,9 +191,25 @@ main(void) {
                 }
 
             }
-            PWMoutput(5000,dut);
-            UARTprintf("dut: %d\n", dut);
-            UARTprintf("getPWM: %d\n\n",(int)getPWM());
+            */
+            /*
+            if(f==1){
+                fre+=1000;
+                if(fre>=7000){
+                    f=0;
+                }
+            }
+            else{
+                fre-=1000;
+                if(fre<=0){
+                    f=1;
+                }
+
+            }
+            */
+            //PWMoutput(5000,0);
+            //UARTprintf("fre: %d\n", 20);
+            //UARTprintf("getPWM: %d\n\n",(int)getPWM());
             //updateTemp();
             //UARTprintf("Temp: %d\n", (int)getTemp());
             //updateCurrent();
@@ -206,5 +217,7 @@ main(void) {
             //updateAngle();
             //UARTprintf("Angle: %d\n", (int)getAngle());
         }
+
+
     }
 }
