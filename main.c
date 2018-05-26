@@ -106,22 +106,24 @@ main(void) {
 
     // Loop forever echoing data through the UART.
     int counter = 0;
+    int iter_mod = 1000000; // 40,000,000;
     while(1)
     {
         // Check the busy flag in the uart7 register. If not busy, set transceiver pin low
         if (UARTReady()){
-
             UARTSetRead();
             UARTprintf("Setting low");
-            SysCtlDelay(40000000);
         }
 
-        UARTprintf("\n\nSending hi\n");
-        UARTSend((const uint8_t*) "hi\n", 3);
-        UARTprintf("\n\nWaiting for characters iteration %d\n", counter);
-        UARTprintf("Pin is  %d\n", GPIOPinRead(GPIO_PORTC_BASE, GPIO_PIN_7));
-        ++counter;
-        SysCtlDelay(40000000);
+       if(counter % iter_mod == 0) {
+           UARTprintf("\n\nSending fuck\n");
+           UARTSend((const uint8_t*) "fuck\n", 5);
+           UARTprintf("Pin is  %d\n", GPIOPinRead(GPIO_PORTC_BASE, GPIO_PIN_7));
+
+           UARTprintf("\nIteration %d\n", counter);
+       }
+
+       ++counter;
 
         // Check if button is pushed for zero position
         /*uint8_t ui8Buttons = ButtonsPoll(0, 0);
@@ -167,9 +169,9 @@ main(void) {
         }*/
 
         if(buffer_time_flag == 1) {
-            UARTprintf("\nBuffer time flag triggered\n");
             if(recvIndex > 0) {
-                UARTprintf("Recv index was > 0, reset");
+                UARTprintf("\nBuffer time flag triggered\n");
+                UARTprintf("Recv index was > 0, reset\n");
                 recvIndex = 0;
             }
             buffer_time_flag = 0;

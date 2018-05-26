@@ -425,13 +425,15 @@ UARTReady(){
 
 void
 UARTSetRead(){
-    GPIOPinWrite(GPIO_PORTC_BASE, GPIO_PIN_6, 0); // Set transceiver rx/tx pin low for read mode
+    // set transceiver rx/tx pin low for read mode
+    GPIOPinWrite(GPIO_PORTC_BASE, GPIO_PIN_6, 0);
     return;
 }
 
 void
 UARTSetWrite(){
-    GPIOPinWrite(GPIO_PORTC_BASE, GPIO_PIN_6, GPIO_PIN_6); // Set transceiver rx/tx pin low for read mode
+    // set transceiver rx/tx pin high for read mode
+    GPIOPinWrite(GPIO_PORTC_BASE, GPIO_PIN_6, GPIO_PIN_6);
     return;
 }
 
