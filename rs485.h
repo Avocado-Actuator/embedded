@@ -41,7 +41,7 @@ void UARTPrintFloat(float, bool);
 
 uint32_t uartSysClock;
 static uint8_t STOPBYTE = '!';
-uint8_t cmdmask, parmask;
+uint8_t cmdmask, parmask, recvIndex;
 
 union Flyte
 {

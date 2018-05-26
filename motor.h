@@ -36,10 +36,12 @@ float KD_angle;
 int flag;
 
 uint32_t Time;
+uint32_t BUFFER_TIME;
 uint8_t time_flag_200ms;
 uint8_t time_flag_1000ms;
 uint8_t time_flag_10000ms;
 uint8_t time_flag_2ms;
+uint8_t buffer_time_flag;
 
 void Timer0IntHandler(void);
 void MotorInit(uint32_t);

@@ -38,19 +38,24 @@ void Timer0IntHandler(void)
     // Clear the timer interrupt.
     ROM_TimerIntClear(TIMER0_BASE, TIMER_TIMA_TIMEOUT);
     // Update the interrupt status.
-    Time++;
+    ++Time;
     if (Time%20000==0){
-            time_flag_200ms=1;
-        }
+        time_flag_200ms=1;
+    }
     if (Time%100000==0){
         time_flag_1000ms=1;
     }
     if (Time%1000000==0){
-            time_flag_10000ms=1;
-        }
+        time_flag_10000ms=1;
+    }
     if (Time%2==0){//actually 20ns
         time_flag_2ms=1;
     }
+
+    // island time except for a buffer
+    ++BUFFER_TIME;
+    // 200 chosen arbitrarily
+    if(BUFFER_TIME % 200) { buffer_time_flag = 1; }
 }
 
 void MotorInit(uint32_t g_ui32SysClock)

@@ -8,6 +8,7 @@
 #include "rs485.h"
 
 uint8_t ADDRESS, BRAIN_ADDRESS, BROADCASTADDR, ADDRSETADDR;
+uint8_t recv[10];
 
 void
 RSInit(uint32_t g_ui32SysClock){
@@ -38,6 +39,7 @@ RSInit(uint32_t g_ui32SysClock){
     BRAIN_ADDRESS = 0x00;
     BROADCASTADDR = 0xFF;
     ADDRSETADDR = 0XFE;
+    recvIndex = 0;
     UARTprintf("RS485 initialized\n");
     return;
 }
@@ -289,7 +291,7 @@ setData(enum Parameter par, union Flyte * value) {
  * @return if we successfully handled a message meant for us
  */
 bool
-handleUART(char* buffer, uint32_t length, bool verbose, bool echo) {
+handleUART(uint8_t* buffer, uint32_t length, bool verbose, bool echo) {
     if(echo) {
         UARTSend((uint8_t *) buffer, length);
         int i;
@@ -365,30 +367,47 @@ handleUART(char* buffer, uint32_t length, bool verbose, bool echo) {
 void
 UARTIntHandler(void)
 {
-    UARTprintf("\n\nEntering interrupt handler\n\n");
-    uint32_t ui32Status;
+    UARTprintf("\nEntering interrupt handler\n");
     // Get the interrupt status.
-    ui32Status = ROM_UARTIntStatus(UART7_BASE, true);
+    uint32_t ui32Status = ROM_UARTIntStatus(UART7_BASE, true);
     // Clear the asserted interrupts.
     ROM_UARTIntClear(UART7_BASE, ui32Status);
-    // Initialize recv buffer
-    char recv[10] = "";
-    uint32_t ind = 0;
     char curr = ROM_UARTCharGet(UART7_BASE);
-    UARTprintf("\n\nAbout to get chars\n\n");
-    // Loop while there are characters in the receive FIFO.
-    while(curr != STOPBYTE && ind < 10)
-    {
-        UARTprintf("\n\nChar: %x\n\n", curr);
-        recv[ind] = curr;
-        ind++;
-//        curr = ROM_UARTGet(UART7_BASE);
-        curr = ROM_UARTCharGetNonBlocking(UART7_BASE);
+    UARTprintf("\nGot char: %x\n", curr);
+    // reset on received char (set to 1 so we don't immediately fire)
+    BUFFER_TIME = 1;
+    recv[recvIndex] = curr;
+    // tracks length, not index of last element
+    ++recvIndex;
+    // buffer overflow check
+    if(recvIndex > 10) {
+        recvIndex = 0;
+        UARTprintf("\nBuffer overflow - exceeded max length\n");
     }
 
+    // handle buffer when stopbyte received
+    if(curr == STOPBYTE) {
+        UARTprintf("\nAbout to handle UART\n");
+        if (handleUART(recv, recvIndex, true, true)) {
+            uint8_t status = getStatus();
+            UARTSend((const uint8_t*) &status, 1);
+        }
+        recvIndex = 0;
+
+    }
+    // Loop while there are characters in the receive FIFO.
+//     while(curr != STOPBYTE && ind < 10)
+//     {
+//         UARTprintf("\nChar: %x\n", curr);
+//         recv[ind] = curr;
+//         ind++;
+// //        curr = ROM_UARTGet(UART7_BASE);
+//         curr = ROM_UARTCharGetNonBlocking(UART7_BASE);
+//     }
+
     // keep stop byte for tokenizing
-    recv[ind] = curr;
-    ind++;
+    // recv[ind] = curr;
+    // ind++;
 
     /*uint8_t crcin = recv[ind-2];
     if (crc8(0, (uint8_t *)recv, ind-2) != crcin){
@@ -396,15 +415,7 @@ UARTIntHandler(void)
         // Handle corrupted message
     }*/
 
-    UARTprintf("\n\nAbout to handle UART\n\n");
-    // handle given message
-    if (handleUART(recv, ind, true, true)) {
-        uint8_t status = getStatus();
-        UARTSend((const uint8_t*) &status, 1);
-    }
-
-    UARTprintf("\n\nLeaving interrupt handler\n\n");
-    return;
+    UARTprintf("\nLeaving interrupt handler\n");
 }
 
 bool

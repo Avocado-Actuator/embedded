@@ -165,5 +165,14 @@ main(void) {
             setTargetAngle(((int) getTargetAngle() + 50) % 360);
             UARTprintf("\n\nTarget angle: %d", (int) getTargetAngle());
         }*/
+
+        if(buffer_time_flag == 1) {
+            UARTprintf("\nBuffer time flag triggered\n");
+            if(recvIndex > 0) {
+                UARTprintf("Recv index was > 0, reset");
+                recvIndex = 0;
+            }
+            buffer_time_flag = 0;
+        }
     }
 }
