@@ -103,13 +103,25 @@ main(void) {
     //testSpin(5000,80);
     //disableDriver();
 
+
     // Loop forever echoing data through the UART.
+    int counter = 0;
     while(1)
     {
         // Check the busy flag in the uart7 register. If not busy, set transceiver pin low
         if (UARTReady()){
+
             UARTSetRead();
+            UARTprintf("Setting low");
+            SysCtlDelay(40000000);
         }
+
+        UARTprintf("\n\nSending hi\n");
+        UARTSend((const uint8_t*) "hi\n", 3);
+        UARTprintf("\n\nWaiting for characters iteration %d\n", counter);
+        UARTprintf("Pin is  %d\n", GPIOPinRead(GPIO_PORTC_BASE, GPIO_PIN_7));
+        ++counter;
+        SysCtlDelay(40000000);
 
         // Check if button is pushed for zero position
         /*uint8_t ui8Buttons = ButtonsPoll(0, 0);

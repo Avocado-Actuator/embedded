@@ -26,7 +26,7 @@ RSInit(uint32_t g_ui32SysClock){
     // Write transceiver enable pin low for listening
     UARTSetRead();
     // Configure the UART for 115,200, 8-N-1 operation.
-    ROM_UARTConfigSetExpClk(UART7_BASE, uartSysClock, 115200,
+    ROM_UARTConfigSetExpClk(UART7_BASE, uartSysClock, 9600,
                             (UART_CONFIG_WLEN_8 | UART_CONFIG_STOP_ONE |
                              UART_CONFIG_PAR_NONE));
     // Enable the UART interrupt.
@@ -62,6 +62,8 @@ UARTSend(const uint8_t *pui8Buffer, uint32_t ui32Count)
     uint8_t crc = crc8(0, (const unsigned char*) &msg, len);
     // Set transceiver rx/tx pin high to send
     UARTSetWrite();
+
+
     bool space = true;
     // Loop while there are more characters to send.
     for (i = 0; i < len; i++) {
@@ -363,6 +365,7 @@ handleUART(char* buffer, uint32_t length, bool verbose, bool echo) {
 void
 UARTIntHandler(void)
 {
+    UARTprintf("\n\nEntering interrupt handler\n\n");
     uint32_t ui32Status;
     // Get the interrupt status.
     ui32Status = ROM_UARTIntStatus(UART7_BASE, true);
@@ -372,12 +375,15 @@ UARTIntHandler(void)
     char recv[10] = "";
     uint32_t ind = 0;
     char curr = ROM_UARTCharGet(UART7_BASE);
+    UARTprintf("\n\nAbout to get chars\n\n");
     // Loop while there are characters in the receive FIFO.
     while(curr != STOPBYTE && ind < 10)
     {
+        UARTprintf("\n\nChar: %x\n\n", curr);
         recv[ind] = curr;
         ind++;
-        curr = ROM_UARTCharGet(UART7_BASE);
+//        curr = ROM_UARTGet(UART7_BASE);
+        curr = ROM_UARTCharGetNonBlocking(UART7_BASE);
     }
 
     // keep stop byte for tokenizing
@@ -390,11 +396,14 @@ UARTIntHandler(void)
         // Handle corrupted message
     }*/
 
+    UARTprintf("\n\nAbout to handle UART\n\n");
     // handle given message
     if (handleUART(recv, ind, true, true)) {
         uint8_t status = getStatus();
         UARTSend((const uint8_t*) &status, 1);
     }
+
+    UARTprintf("\n\nLeaving interrupt handler\n\n");
     return;
 }
 
