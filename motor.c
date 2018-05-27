@@ -27,6 +27,9 @@ float   CUR,
         lastCurError,
         prevCurError;
 
+uint32_t pui32DataTx[4];
+uint32_t pui32DataRx[4];
+
 void Timer0IntHandler(void)
 {
     // Clear the timer interrupt.
@@ -44,6 +47,103 @@ void Timer0IntHandler(void)
     }
 }
 
+void TimerInit(uint32_t g_ui32SysClock)
+{
+    /************** Initialization for timer (1ms)  *****************/
+    //Enable the timer peripherals
+    ROM_SysCtlPeripheralEnable(SYSCTL_PERIPH_TIMER0);
+    // Configure 32-bit periodic timers.
+    //1ms timer
+    ROM_TimerConfigure(TIMER0_BASE, TIMER_CFG_PERIODIC);
+    ROM_TimerLoadSet(TIMER0_BASE, TIMER_A, g_ui32SysClock/100000);//was 1000, now trigger every 10ns, 100000Hz
+    // Setup the interrupts for the timer timeouts.
+    ROM_IntEnable(INT_TIMER0A);
+    ROM_TimerIntEnable(TIMER0_BASE, TIMER_TIMA_TIMEOUT);
+    // Enable the timers.
+    ROM_TimerEnable(TIMER0_BASE, TIMER_A);
+}
+
+void PWMInit(){
+    /***********PWM control***********/
+    //Enable PWM output on PG0, which connect to INHA
+    SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOG);
+    SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOP);
+    SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOQ);
+    SysCtlPeripheralEnable(SYSCTL_PERIPH_PWM0);
+
+    //1/64 of system clock: 120Mhz/64
+    PWMClockSet(PWM0_BASE,PWM_SYSCLK_DIV_1);//64
+
+    //set PG0 as PWM pin
+    GPIOPinConfigure(GPIO_PG0_M0PWM4);
+    GPIOPinTypePWM(GPIO_PORTG_BASE, GPIO_PIN_0);
+    PWMGenConfigure(PWM0_BASE, PWM_GEN_2, PWM_GEN_MODE_DOWN | PWM_GEN_MODE_NO_SYNC);
+
+    // From R2R:
+    // Set the PWM period to 12500Hz.  To calculate the appropriate parameter
+    // use the following equation: N = (1 / f) * SysClk.  Where N is the
+    // function parameter, f is the desired frequency, and SysClk is the
+    // system clock frequency.
+    // In this case you get: (1 / 12500Hz) * 120MHz = 9600 cycles.  Note that
+    // the maximum period you can set is 2^16 - 1.
+    PWMGenPeriodSet(PWM0_BASE, PWM_GEN_2, 9600);
+    PWMPulseWidthSet(PWM0_BASE, PWM_OUT_4, 0);
+    PWMOutputState(PWM0_BASE, PWM_OUT_4_BIT, true);
+    PWMGenEnable(PWM0_BASE, PWM_GEN_2);
+}
+
+void MotorSPIInit(uint32_t ui32SysClock)
+{
+    // The SSI2 peripheral must be enabled for use.
+    SysCtlPeripheralEnable(SYSCTL_PERIPH_SSI2); // SSI2
+
+    // Enable GPIO for SPI2
+    SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOD);
+
+    // Configure the GPIO settings for the SSI pins.
+    GPIOPinConfigure(GPIO_PD3_SSI2CLK); //CLK
+    GPIOPinConfigure(GPIO_PD1_SSI2XDAT0); // MOSI
+    GPIOPinConfigure(GPIO_PD0_SSI2XDAT1); // MISO
+    GPIOPinTypeSSI(GPIO_PORTD_BASE, GPIO_PIN_0 | GPIO_PIN_1 | GPIO_PIN_3); // SCK/MOSI/MISO
+    GPIOPinTypeGPIOOutput(GPIO_PORTD_BASE, GPIO_PIN_2 );//FSS
+    GPIOPinWrite(GPIO_PORTD_BASE, GPIO_PIN_2, GPIO_PIN_2);//set FSS to high
+
+    // Configure and enable the SSI port for SPI master mode.
+    //TODO: Test if the bit rate can be the highest 5M.
+    SSIConfigSetExpClk(SSI2_BASE, ui32SysClock, SSI_FRF_MOTO_MODE_1,
+                           SSI_MODE_MASTER, 1000000, 16); // 16 bits for motor, use 100kbps mode, use the system clock
+
+    // Enable the SSI2 module.
+    SSIEnable(SSI2_BASE);
+}
+
+void MotorSPISetting(){
+    while(SSIDataGetNonBlocking(SSI2_BASE, &pui32DataRx[0])){
+    }
+
+    pui32DataTx[0] = 0b1001000000000000; // read register 2h
+    pui32DataTx[1] = 0b0001000001000000; // set register 2h, bit 6 and 5 to 10, option 3, 1x PWM mode, bit 4 to 0, synchronous
+    pui32DataTx[2]=  0b1001000000000000; // read register 2h
+    pui32DataTx[3]=  0b1001000000000000; // read register 2h one more time
+
+    GPIOPinWrite(GPIO_PORTD_BASE,GPIO_PIN_2,0);
+    SysCtlDelay(1);
+    int i;
+    for(i = 0; i < 4; i++){ // only reading and writing 3 times
+        GPIOPinWrite(GPIO_PORTD_BASE,GPIO_PIN_2,0); // Pull FSS low
+        SysCtlDelay(1);
+        SSIDataPut(SSI2_BASE, pui32DataTx[i]); // Send data
+        SysCtlDelay(1000); // wait (at least 50ns)
+        GPIOPinWrite(GPIO_PORTD_BASE,GPIO_PIN_2,GPIO_PIN_2); // Set FSS high
+        SSIDataGet(SSI2_BASE, &pui32DataRx[i]); // Get the data
+    }
+    while(SSIBusy(SSI2_BASE)){
+    }
+
+    GPIOPinWrite(GPIO_PORTD_BASE,GPIO_PIN_2,GPIO_PIN_2); // Make sure the pin is high
+
+   SysCtlDelay(1000);
+}
 void MotorInit(uint32_t g_ui32SysClock)
 {
     // variable inits
@@ -66,51 +166,28 @@ void MotorInit(uint32_t g_ui32SysClock)
     KI_current=0;
     KD_current=0;
 
-    /************** Initialization for timer (1ms)  *****************/
-    //Enable the timer peripherals
-    ROM_SysCtlPeripheralEnable(SYSCTL_PERIPH_TIMER0);
-    // Configure 32-bit periodic timers.
-    //1ms timer
-    ROM_TimerConfigure(TIMER0_BASE, TIMER_CFG_PERIODIC);
-    ROM_TimerLoadSet(TIMER0_BASE, TIMER_A, g_ui32SysClock/100000);//was 1000, now trigger every 10ns, 100000Hz
-    // Setup the interrupts for the timer timeouts.
-    ROM_IntEnable(INT_TIMER0A);
-    ROM_TimerIntEnable(TIMER0_BASE, TIMER_TIMA_TIMEOUT);
-    // Enable the timers.
-    ROM_TimerEnable(TIMER0_BASE, TIMER_A);
+    UARTprintf("initializing motor driver...\n");
 
-    /***********PWM control***********/
-    //Enable PWM output on PG0, which connect to INHA
-    SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOG);
-    SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOP);
-    SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOQ);
-    SysCtlPeripheralEnable(SYSCTL_PERIPH_PWM0);
+    TimerInit(g_ui32SysClock);
 
-    //1/64 of system clock: 120Mhz/64
-    PWMClockSet(PWM0_BASE,PWM_SYSCLK_DIV_64);
+    PWMInit();
 
-    //set PG0 as PWM pin
-    GPIOPinConfigure(GPIO_PG0_M0PWM4);
-    GPIOPinTypePWM(GPIO_PORTG_BASE, GPIO_PIN_0);
-    PWMGenConfigure(PWM0_BASE, PWM_GEN_2, PWM_GEN_MODE_DOWN | PWM_GEN_MODE_NO_SYNC);
-    PWMGenPeriodSet(PWM0_BASE, PWM_GEN_2, 320);
-    PWMPulseWidthSet(PWM0_BASE, PWM_OUT_4, 0);
-    PWMOutputState(PWM0_BASE, PWM_OUT_4_BIT, true);
-    PWMGenEnable(PWM0_BASE, PWM_GEN_2);
-    UARTprintf("initializing motor driver pins\n");
+    //Motor pins configuration
     //Set PQ1 Always high for enable
     GPIOPinTypeGPIOOutput(GPIO_PORTQ_BASE, GPIO_PIN_1);
     GPIOPinWrite(GPIO_PORTQ_BASE, GPIO_PIN_1,GPIO_PIN_1);
 
-    //Set PP0 as DIR, spins counterclockwise if PP0 is high
+    //Set PP0 as INLC, spins counterclockwise if PP0 is high
     GPIOPinTypeGPIOOutput(GPIO_PORTP_BASE, GPIO_PIN_0);
     GPIOPinWrite(GPIO_PORTP_BASE, GPIO_PIN_0,GPIO_PIN_0);
 
-	//Set PP1 as nBreak, brake if PP1 is low
+	//Set PP1 as INHC, brake if PP1 is low
     GPIOPinTypeGPIOOutput(GPIO_PORTP_BASE, GPIO_PIN_1);
     GPIOPinWrite(GPIO_PORTP_BASE, GPIO_PIN_1,GPIO_PIN_1);
 
-    zeroPosition();
+
+    MotorSPIInit(g_ui32SysClock);
+    MotorSPISetting();
 }
 
 float getAngle() { return ANGLE; }
@@ -124,7 +201,7 @@ void updateAngle() {
     readAverageData(&angle, &mag, &agc);
     section = getSection();
     PrevAngle = getAngle();
-    //UARTPrintFloat(float val, bool verbose)
+
     // Calculate final angle position in degrees
     setAngle(calcFinalAngle(angle, section));
     UARTprintf("final angle: %d\n\n", (int)getAngle());
@@ -139,36 +216,34 @@ void setTargetVelocity(float newVelocity) { TARGET_VELO = newVelocity; }
 // unit: degree per second
 void UpdateVelocity() {
     float diff;
-    /*
-	if(direction==1){//clockwise
-	    diff= getAngle()- PrevAngle;
-	}
-	else{
-	    diff= PrevAngle - getAngle();
-	}
-    diff=diff>0?diff:diff+360;
-    */
     diff= getAngle()- PrevAngle;
+    //use acute angle
+    //the motor move from  350 to 10, the diff should be 20 instead of -340, etc
+    diff=diff<-180?diff+360:diff;
+    diff=diff>180?diff-360:diff;
 	setVelocity(diff/ 0.00002); // assumes measuring velocity every 20ns
 }
 
-void PWMoutput(uint32_t freq, uint32_t dut){
+void PWMoutput(int dut){
     if(dut<0){
         dut=-dut;
-        //changedirection
+        //change the output direction
     }
-    PWMGenPeriodSet(PWM0_BASE, PWM_GEN_2, 1875000/freq);
-    PWMPulseWidthSet(PWM0_BASE, PWM_GEN_2, 1875000/freq*dut/100);
+    //TODO: test what if duty is 0
+    if(dut==0){
+        dut=1;
+    }
+    PWMPulseWidthSet(PWM0_BASE, PWM_GEN_2, 9600*dut/100);
 }
 
-//get duty percentage
+//get duty width
 uint32_t getPWM(){
-    return PWMPulseWidthGet(PWM0_BASE, PWM_GEN_2)*100*frequency/1875000;
+    return PWMPulseWidthGet(PWM0_BASE, PWM_GEN_2);
 }
 
 
 void brake(){
-    PWMoutput(5000,0);
+    PWMoutput(0);
 	UARTprintf("\nbraking");
     //untested
     //GPIOPinWrite(GPIO_PORTP_BASE, GPIO_PIN_1,0);
@@ -188,7 +263,8 @@ void enableDriver(){
 void PositionControl(float target)
 {
     float error = target - getAngle();
-	
+    error=error<-180?error+360:error;
+    error=error>180?error-360:error;
 	if ( error<=5 && error>=-5){//if reach the target position, trigger break
 	    //maybe you want to hold it instead of brake like
 	    //VelocityControl(0);
@@ -235,7 +311,7 @@ void CurrentControl(float target)
 		duty=0;
 	}
 
-   PWMoutput(5000,(int)duty);
+   PWMoutput((int)duty);
 }
 
 
