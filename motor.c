@@ -118,28 +118,34 @@ void MotorSPIInit(uint32_t ui32SysClock)
 }
 
 void MotorSPISetting(){
+
+
     while(SSIDataGetNonBlocking(SSI2_BASE, &pui32DataRx[0])){
-    }
+       }
 
-    pui32DataTx[0] = 0b1001000000000000; // read register 2h
-    pui32DataTx[1] = 0b0001000001000000; // set register 2h, bit 6 and 5 to 10, option 3, 1x PWM mode, bit 4 to 0, synchronous
-    pui32DataTx[2]=  0b1001000000000000; // read register 2h
-    pui32DataTx[3]=  0b1001000000000000; // read register 2h one more time
+       pui32DataTx[0] = 0b0001000001000000; // set register 2h, bit 6 and 5 to 10, option 3, 1x PWM mode, bit 4 to 0, synchronous
+       pui32DataTx[1] = 0b1001000000000000; // read register 2h, first bit is 1 for reading
+       pui32DataTx[2]=  0b0011001010000011; // read register 6h, was 01010000011
+       pui32DataTx[3]=  0b1011000000000000; // read register 6h
 
-    GPIOPinWrite(GPIO_PORTD_BASE,GPIO_PIN_2,0);
-    SysCtlDelay(1);
-    int i;
-    for(i = 0; i < 4; i++){ // only reading and writing 3 times
-        GPIOPinWrite(GPIO_PORTD_BASE,GPIO_PIN_2,0); // Pull FSS low
-        SysCtlDelay(1);
-        SSIDataPut(SSI2_BASE, pui32DataTx[i]); // Send data
-        SysCtlDelay(1000); // wait (at least 50ns)
-        GPIOPinWrite(GPIO_PORTD_BASE,GPIO_PIN_2,GPIO_PIN_2); // Set FSS high
-        SSIDataGet(SSI2_BASE, &pui32DataRx[i]); // Get the data
-    }
-    while(SSIBusy(SSI2_BASE)){
-    }
+       GPIOPinWrite(GPIO_PORTD_BASE,GPIO_PIN_2,0);
+       SysCtlDelay(1);
+       int i;
+       for(i = 0; i < 4; i++){ // only reading and writing 3 times
+           GPIOPinWrite(GPIO_PORTD_BASE,GPIO_PIN_2,0); // Pull FSS low
+           SysCtlDelay(1);
+           SSIDataPut(SSI2_BASE, pui32DataTx[i]); // Send data
+           SysCtlDelay(1000); // wait (at least 50ns)
+           GPIOPinWrite(GPIO_PORTD_BASE,GPIO_PIN_2,GPIO_PIN_2); // Set FSS high
+           SSIDataGet(SSI2_BASE, &pui32DataRx[i]); // Get the data
+       }
+       while(SSIBusy(SSI2_BASE)){
+       }
 
+    UARTprintf("register 2h before:%d:\n",pui32DataRx[0]);
+    UARTprintf("register 2h after:%d:\n",pui32DataRx[1]);
+    UARTprintf("register 6h before:%d:\n",pui32DataRx[2]);
+    UARTprintf("register 6h after:%d:\n",pui32DataRx[3]);
     GPIOPinWrite(GPIO_PORTD_BASE,GPIO_PIN_2,GPIO_PIN_2); // Make sure the pin is high
 
    SysCtlDelay(1000);
@@ -187,7 +193,9 @@ void MotorInit(uint32_t g_ui32SysClock)
 
 
     MotorSPIInit(g_ui32SysClock);
+    UARTprintf("motor driver initialized! 1\n");
     MotorSPISetting();
+    UARTprintf("motor driver initialized! 2\n");
 }
 
 float getAngle() { return ANGLE; }
@@ -225,13 +233,17 @@ void UpdateVelocity() {
 }
 
 void PWMoutput(int dut){
+    if(dut>0){
+        GPIOPinWrite(GPIO_PORTP_BASE, GPIO_PIN_1,0);//clockwise
+    }
     if(dut<0){
         dut=-dut;
-        //change the output direction
+        GPIOPinWrite(GPIO_PORTP_BASE, GPIO_PIN_1,GPIO_PIN_1);
     }
     //TODO: test what if duty is 0
     if(dut==0){
-        dut=1;
+        GPIOPinWrite(GPIO_PORTP_BASE, GPIO_PIN_1,GPIO_PIN_1);
+        dut=0;
     }
     PWMPulseWidthSet(PWM0_BASE, PWM_GEN_2, 9600*dut/100);
 }
