@@ -43,6 +43,10 @@ uint8_t time_flag_1000ms;
 uint8_t time_flag_20ns;
 
 void Timer0IntHandler(void);
+void TimerInit(uint32_t);
+void PWMInit(void);
+void MotorSPIInit(uint32_t ui32SysClock);
+void MotorSPISetting(void);
 void MotorInit(uint32_t);
 void CurrentControl(float);
 void VelocityControl(float);
@@ -61,7 +65,7 @@ float getTargetVelocity(void);
 void setTargetVelocity(float);
 void updateVelocity(void);
 
-void PWMoutput(uint32_t, uint32_t);
+void PWMoutput(int);
 uint32_t getPWM(void);
 
 void brake(void);
