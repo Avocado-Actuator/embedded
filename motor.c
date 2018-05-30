@@ -30,6 +30,13 @@ float   CUR,
 uint32_t pui32DataTx[4];
 uint32_t pui32DataRx[4];
 
+//*****************************************************************************
+// Handler of timer interrupts, set a clock for program
+//
+// input: None
+//
+// return: None
+//*****************************************************************************
 void Timer0IntHandler(void)
 {
     // Clear the timer interrupt.
@@ -67,8 +74,6 @@ void PWMInit(){
     /***********PWM control***********/
     //Enable PWM output on PG0, which connect to INHA
     SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOG);
-    SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOP);
-    SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOQ);
     SysCtlPeripheralEnable(SYSCTL_PERIPH_PWM0);
 
     //1/64 of system clock: 120Mhz/64
@@ -150,6 +155,14 @@ void MotorSPISetting(){
 
    SysCtlDelay(1000);
 }
+
+//*****************************************************************************
+// Initializer of motor driver, including timer, PWM, SPI and GPIO
+//
+// input: g_ui32SysClock, system clock.
+//
+// return: None
+//*****************************************************************************
 void MotorInit(uint32_t g_ui32SysClock)
 {
     // variable inits
@@ -179,6 +192,8 @@ void MotorInit(uint32_t g_ui32SysClock)
     PWMInit();
 
     //Motor pins configuration
+    SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOP);
+    SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOQ);
     //Set PQ1 Always high for enable
     GPIOPinTypeGPIOOutput(GPIO_PORTQ_BASE, GPIO_PIN_1);
     GPIOPinWrite(GPIO_PORTQ_BASE, GPIO_PIN_1,GPIO_PIN_1);
@@ -198,11 +213,17 @@ void MotorInit(uint32_t g_ui32SysClock)
     UARTprintf("motor driver initialized! 2\n");
 }
 
+//*****************************************************************************
+// return the angle (unit: degree)
+//*****************************************************************************
 float getAngle() { return ANGLE; }
 void setAngle(float newAngle) { ANGLE = newAngle; }
 float getTargetAngle() { return TARGET_ANGLE; }
 void setTargetAngle(float newAngle) { TARGET_ANGLE = newAngle; }
 
+//*****************************************************************************
+// update the angle from position encoder
+//*****************************************************************************
 void updateAngle() {
     uint32_t angle, mag, agc, section;
     //Average data over number of cycles
@@ -216,12 +237,17 @@ void updateAngle() {
     return;
 }
 
+//*****************************************************************************
+// return the velocity (unit: rps)
+//*****************************************************************************
 float getVelocity() { return VELO; }
 void setVelocity(float newVelocity) { VELO = newVelocity; }
 float getTargetVelocity() { return TARGET_VELO; }
 void setTargetVelocity(float newVelocity) { TARGET_VELO = newVelocity; }
 
-// unit: degree per second
+//*****************************************************************************
+// update the velocity from difference of two angles in 20 micro seconds.
+//*****************************************************************************
 void UpdateVelocity() {
     float diff;
     diff= getAngle()- PrevAngle;
@@ -229,9 +255,13 @@ void UpdateVelocity() {
     //the motor move from  350 to 10, the diff should be 20 instead of -340, etc
     diff=diff<-180?diff+360:diff;
     diff=diff>180?diff-360:diff;
-	setVelocity(diff/ 0.00002); // assumes measuring velocity every 20ns
+	setVelocity(diff/ 0.00002/60); // assumes measuring velocity every 20 micro seconds
 }
 
+//*****************************************************************************
+// control the PWM output to motor driver
+// input: dut, percentage of full output. Motor spins clockwise if dut is positive, and counterclockwise if negative.
+//*****************************************************************************
 void PWMoutput(int dut){
     if(dut>0){
         GPIOPinWrite(GPIO_PORTP_BASE, GPIO_PIN_1,0);//clockwise
@@ -248,12 +278,17 @@ void PWMoutput(int dut){
     PWMPulseWidthSet(PWM0_BASE, PWM_GEN_2, 9600*dut/100);
 }
 
-//get duty width
+//*****************************************************************************
+// Get PWM pulse width
+// return: PWM width
+//*****************************************************************************
 uint32_t getPWM(){
     return PWMPulseWidthGet(PWM0_BASE, PWM_GEN_2);
 }
 
-
+//*****************************************************************************
+// Motor brake, set pwm to 0 and set nBrake to low.
+//*****************************************************************************
 void brake(){
     PWMoutput(0);
 	UARTprintf("\nbraking");
@@ -271,7 +306,10 @@ void enableDriver(){
     GPIOPinWrite(GPIO_PORTQ_BASE, GPIO_PIN_1, GPIO_PIN_1);
 }
 
-//PD control of position
+//*****************************************************************************
+// PI control of position
+// input: target angle (unit: degree)
+//*****************************************************************************
 void PositionControl(float target)
 {
     float error = target - getAngle();
@@ -296,7 +334,10 @@ void PositionControl(float target)
 	VelocityControl(outputVelo);
 }
 
-//Incremental PID control of velocity
+//*****************************************************************************
+// incremental PID control of velocity
+// input: target velocity (unit: rps)
+//*****************************************************************************
 void VelocityControl(float target)
 {
     float error = target - getVelocity();
@@ -311,7 +352,10 @@ void VelocityControl(float target)
     CurrentControl(outputCurrent);
 }
 
-//PI control
+//*****************************************************************************
+// incremental PID control of velocity
+// input: target current (unit: amp)
+//*****************************************************************************
 void CurrentControl(float target)
 {
     float error=target-getCurrent();//current sample rate should be consistent with the position
