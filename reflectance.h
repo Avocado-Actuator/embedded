@@ -18,7 +18,7 @@
 #include "driverlib/uart.h"
 #include "utils/uartstdio.h"
 
-#define THRESH 1000
+#define THRESH 1500
 #define NUM_CHANNELS 4
 
 //
