@@ -19,7 +19,7 @@ float   VELO,
         TARGET_VELO,
         lastVeloError,
         prevVeloError,
-        outputCurrent;
+        outputCurrent=0;
 
 // current
 float   CUR,
@@ -29,6 +29,63 @@ float   CUR,
 
 uint32_t pui32DataTx[4];
 uint32_t pui32DataRx[4];
+
+//*****************************************************************************
+// Initializer of motor driver, including timer, PWM, SPI and GPIO
+//
+// input: g_ui32SysClock, system clock.
+//
+// return: None
+//*****************************************************************************
+void MotorInit(uint32_t g_ui32SysClock)
+{
+    // variable inits
+    time_flag_motor = 0;
+    time_flag_console = 0;
+    frequency = 5000; //2500-9000
+    duty=0;
+
+    KP_velocity=0;
+    KI_velocity=0.0;
+    KD_velocity=0;
+
+    KP_angle=0.05;
+    KI_angle=0.001;
+    KD_angle=0;
+
+    KP_current=0;
+    KI_current=0;
+    KD_current=0;
+
+    UARTprintf("initializing motor driver...\n");
+
+    TimerInit(g_ui32SysClock);
+
+    PWMInit();
+
+    //Motor pins configuration
+    SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOP);
+    SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOQ);
+    //Set PQ1 Always high for enable
+    GPIOPinTypeGPIOOutput(GPIO_PORTQ_BASE, GPIO_PIN_1);
+    GPIOPinWrite(GPIO_PORTQ_BASE, GPIO_PIN_1,GPIO_PIN_1);
+
+    //Set PP0 as INLC, spins counterclockwise if PP0 is high
+    GPIOPinTypeGPIOOutput(GPIO_PORTP_BASE, GPIO_PIN_0);
+    GPIOPinWrite(GPIO_PORTP_BASE, GPIO_PIN_0,GPIO_PIN_0);
+
+    //Set PP1 as INHC, brake if PP1 is low
+    GPIOPinTypeGPIOOutput(GPIO_PORTP_BASE, GPIO_PIN_1);
+    GPIOPinWrite(GPIO_PORTP_BASE, GPIO_PIN_1,GPIO_PIN_1);
+
+
+    MotorSPIInit(g_ui32SysClock);
+    UARTprintf("motor driver initialized! 1\n");
+    MotorSPISetting();
+    UARTprintf("motor driver initialized! 2\n");
+
+    //zeroPosition();
+}
 
 //*****************************************************************************
 // Handler of timer interrupts, set a clock for program
@@ -41,33 +98,35 @@ void Timer0IntHandler(void)
 {
     // Clear the timer interrupt.
     ROM_TimerIntClear(TIMER0_BASE, TIMER_TIMA_TIMEOUT);
-    // Update the interrupt status.
-    Time++;
-    if (Time%20000==0){
-            time_flag_200ms=1;
-        }
-    if (Time%100000==0){
-        time_flag_1000ms=1;
-    }
-    if (Time%2==0){//actually 20ns
-        time_flag_20ns=1;
-    }
+    time_flag_motor=1;
+}
+
+void Timer1IntHandler(void){
+    ROM_TimerIntClear(TIMER1_BASE, TIMER_TIMA_TIMEOUT);
+    time_flag_console=1;
 }
 
 void TimerInit(uint32_t g_ui32SysClock)
 {
-    /************** Initialization for timer (1ms)  *****************/
+    /************** Initialization for timer (1ms and 1s)  *****************/
     //Enable the timer peripherals
     ROM_SysCtlPeripheralEnable(SYSCTL_PERIPH_TIMER0);
+    ROM_SysCtlPeripheralEnable(SYSCTL_PERIPH_TIMER1);
     // Configure 32-bit periodic timers.
     //1ms timer
     ROM_TimerConfigure(TIMER0_BASE, TIMER_CFG_PERIODIC);
-    ROM_TimerLoadSet(TIMER0_BASE, TIMER_A, g_ui32SysClock/100000);//was 1000, now trigger every 10ns, 100000Hz
+    ROM_TimerLoadSet(TIMER0_BASE, TIMER_A, g_ui32SysClock/1000);//trigger every 1ms
+    //1s timer
+    ROM_TimerConfigure(TIMER1_BASE, TIMER_CFG_PERIODIC);
+    ROM_TimerLoadSet(TIMER1_BASE, TIMER_A, g_ui32SysClock);//trigger every 1s
     // Setup the interrupts for the timer timeouts.
     ROM_IntEnable(INT_TIMER0A);
+    ROM_IntEnable(INT_TIMER1A);
     ROM_TimerIntEnable(TIMER0_BASE, TIMER_TIMA_TIMEOUT);
+    ROM_TimerIntEnable(TIMER1_BASE, TIMER_TIMA_TIMEOUT);
     // Enable the timers.
     ROM_TimerEnable(TIMER0_BASE, TIMER_A);
+    ROM_TimerEnable(TIMER1_BASE, TIMER_A);
 }
 
 void PWMInit(){
@@ -156,62 +215,7 @@ void MotorSPISetting(){
    SysCtlDelay(1000);
 }
 
-//*****************************************************************************
-// Initializer of motor driver, including timer, PWM, SPI and GPIO
-//
-// input: g_ui32SysClock, system clock.
-//
-// return: None
-//*****************************************************************************
-void MotorInit(uint32_t g_ui32SysClock)
-{
-    // variable inits
-    Time=0;
-    time_flag_200ms = 0;
-    time_flag_1000ms = 0;
-    time_flag_20ns = 0;
-    frequency = 5000; //2500-9000
-    duty=0;
 
-    KP_velocity=50;
-    KI_velocity=90;
-    KD_velocity=0;
-
-    KP_angle=0.05;
-    KI_angle=0.001;
-    KD_angle=0;
-
-    KP_current=0;
-    KI_current=0;
-    KD_current=0;
-
-    UARTprintf("initializing motor driver...\n");
-
-    TimerInit(g_ui32SysClock);
-
-    PWMInit();
-
-    //Motor pins configuration
-    SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOP);
-    SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOQ);
-    //Set PQ1 Always high for enable
-    GPIOPinTypeGPIOOutput(GPIO_PORTQ_BASE, GPIO_PIN_1);
-    GPIOPinWrite(GPIO_PORTQ_BASE, GPIO_PIN_1,GPIO_PIN_1);
-
-    //Set PP0 as INLC, spins counterclockwise if PP0 is high
-    GPIOPinTypeGPIOOutput(GPIO_PORTP_BASE, GPIO_PIN_0);
-    GPIOPinWrite(GPIO_PORTP_BASE, GPIO_PIN_0,GPIO_PIN_0);
-
-	//Set PP1 as INHC, brake if PP1 is low
-    GPIOPinTypeGPIOOutput(GPIO_PORTP_BASE, GPIO_PIN_1);
-    GPIOPinWrite(GPIO_PORTP_BASE, GPIO_PIN_1,GPIO_PIN_1);
-
-
-    MotorSPIInit(g_ui32SysClock);
-    UARTprintf("motor driver initialized! 1\n");
-    MotorSPISetting();
-    UARTprintf("motor driver initialized! 2\n");
-}
 
 //*****************************************************************************
 // return the angle (unit: degree)
@@ -233,7 +237,6 @@ void updateAngle() {
 
     // Calculate final angle position in degrees
     setAngle(calcFinalAngle(angle, section));
-    UARTprintf("final angle: %d\n\n", (int)getAngle());
     return;
 }
 
@@ -246,16 +249,17 @@ float getTargetVelocity() { return TARGET_VELO; }
 void setTargetVelocity(float newVelocity) { TARGET_VELO = newVelocity; }
 
 //*****************************************************************************
-// update the velocity from difference of two angles in 20 micro seconds.
+// update the velocity from difference of two angles in 1ms.
 //*****************************************************************************
-void UpdateVelocity() {
+void updateVelocity() {
     float diff;
     diff= getAngle()- PrevAngle;
+    //UARTprintf("diff:%d\n",(int)diff);
     //use acute angle
     //the motor move from  350 to 10, the diff should be 20 instead of -340, etc
     diff=diff<-180?diff+360:diff;
     diff=diff>180?diff-360:diff;
-	setVelocity(diff/ 0.00002/60); // assumes measuring velocity every 20 micro seconds
+	setVelocity(diff*1000/360); // assumes measuring velocity every 20 micro seconds
 }
 
 //*****************************************************************************
@@ -263,17 +267,17 @@ void UpdateVelocity() {
 // input: dut, percentage of full output. Motor spins clockwise if dut is positive, and counterclockwise if negative.
 //*****************************************************************************
 void PWMoutput(int dut){
-    if(dut>0){
-        GPIOPinWrite(GPIO_PORTP_BASE, GPIO_PIN_1,0);//clockwise
-    }
     if(dut<0){
         dut=-dut;
+        GPIOPinWrite(GPIO_PORTP_BASE, GPIO_PIN_1,0);//clockwise
+    }
+    if(dut>0){
         GPIOPinWrite(GPIO_PORTP_BASE, GPIO_PIN_1,GPIO_PIN_1);
     }
     //TODO: test what if duty is 0
     if(dut==0){
         GPIOPinWrite(GPIO_PORTP_BASE, GPIO_PIN_1,GPIO_PIN_1);
-        dut=0;
+        dut=1;
     }
     PWMPulseWidthSet(PWM0_BASE, PWM_GEN_2, 9600*dut/100);
 }
@@ -345,11 +349,11 @@ void VelocityControl(float target)
     prevVeloError=lastVeloError;
     lastVeloError=error;
 
-    //regulator
-    if (outputCurrent<0)
-        outputCurrent=0;
-
-    CurrentControl(outputCurrent);
+    if(outputCurrent>40)
+        outputCurrent=40;
+    PWMoutput((int)outputCurrent);
+    //skip currentcontrol
+    //CurrentControl(outputCurrent);
 }
 
 //*****************************************************************************
