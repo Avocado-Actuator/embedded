@@ -63,7 +63,7 @@ uint32_t getSection(void) {
     int i;
     char greyArray[NUM_CHANNELS];
     for (i = 0; i < NUM_CHANNELS; i++) {
-        UARTprintf("%d: %d\n",i,pui32ADC0Value[i]);
+//        UARTprintf("%d: %d\n",i,pui32ADC0Value[i]);
         if (pui32ADC0Value[i] > THRESH) {
             greyArray[NUM_CHANNELS-1-i] = 1;
         } else {
@@ -118,9 +118,8 @@ float calcFinalAngle(uint32_t angle, uint32_t section) {
     } else {
         final_section = section/2;
     }
-    UARTprintf("section:%d\n",(int)section);
-    UARTprintf("Angle:%d\n",(int)angle);
-    UARTprintf("final_section:%d\n",(int)final_section);
-    //return angle;
+//    UARTprintf("section:%d\n",(int)section);
+//    UARTprintf("Angle:%d\n",(int)angle);
+//    UARTprintf("final_section:%d\n",(int)final_section);
     return ((float) angle/360.0)*45.0 + (float) final_section*45.0;
 }
