@@ -37,10 +37,8 @@ float KP_current;
 float KI_current;
 float KD_current;
 
-uint32_t Time;
-uint8_t time_flag_200ms;
-uint8_t time_flag_1000ms;
-uint8_t time_flag_20ns;
+uint8_t time_flag_motor;
+uint8_t time_flag_console;
 
 void Timer0IntHandler(void);
 void TimerInit(uint32_t);
