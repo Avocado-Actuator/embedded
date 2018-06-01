@@ -1,4 +1,4 @@
-/*
+\/*
  * Main file for the Avocado embedded code
  */
 
@@ -144,11 +144,10 @@ main(void) {
     TempInit(g_ui32SysClock);
     UARTprintf("Initialized\n\n");
 
-    PWMoutput(5000,0);
+    PWMoutput(0);
     //disableDriver();
 
     int dut=0;
-    int f=1;
     while(1)
     {
         // Check the busy flag in the uart7 register. If not busy, set transceiver pin low
@@ -164,18 +163,18 @@ main(void) {
         }
         */
 
-        if (time_flag_20ns==1){
-            time_flag_20ns=0;
+        if (time_flag_motor==1){
+            time_flag_motor=0;
             updateAngle();
-            UpdateVelocity();
-            PositionControl(200);
+            updateVelocity();
+            VelocityControl(5);
 
             // VelocityControl();
             // Get current data
         }
 
-        if (time_flag_1000ms == 1){
-            time_flag_1000ms = 0;
+        if (time_flag_console == 1){
+            time_flag_console = 0;
 
             /*
             if(f==1){
@@ -192,30 +191,14 @@ main(void) {
 
             }
             */
-            /*
-            if(f==1){
-                fre+=1000;
-                if(fre>=7000){
-                    f=0;
-                }
-            }
-            else{
-                fre-=1000;
-                if(fre<=0){
-                    f=1;
-                }
-
-            }
-            */
-            //PWMoutput(5000,0);
             //UARTprintf("fre: %d\n", 20);
             //UARTprintf("getPWM: %d\n\n",(int)getPWM());
             //updateTemp();
             //UARTprintf("Temp: %d\n", (int)getTemp());
             //updateCurrent();
             //UARTprintf("\nCurrent: %d\n", (int)getCurrent());
-            //updateAngle();
             //UARTprintf("Angle: %d\n", (int)getAngle());
+            UARTprintf("Vel: %d\n", (int)getVelocity());
         }
 
 
