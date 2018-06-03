@@ -1,4 +1,4 @@
-\/*
+/*
  * Main file for the Avocado embedded code
  */
 
@@ -104,10 +104,10 @@ UARTIntHandler0(void)
         //
         // Read the next character from the UART and write it back to the UART.
         //
-        ROM_UARTCharPutNonBlocking(UART0_BASE,
-                                   ROM_UARTCharGetNonBlocking(UART0_BASE));
-
-        zeroPosition();
+        char ch=ROM_UARTCharGetNonBlocking(UART0_BASE);
+        ROM_UARTCharPutNonBlocking(UART0_BASE,ch);
+        enableDriver();
+        //zeroPosition();
 
     }
 }
@@ -140,14 +140,14 @@ main(void) {
     EncoderInit(g_ui32SysClock);
     ReflectInit();
     ButtonsInit();
-    MotorInit(g_ui32SysClock);
     TempInit(g_ui32SysClock);
+    MotorInit(g_ui32SysClock);
+
     UARTprintf("Initialized\n\n");
 
-    PWMoutput(0);
-    //disableDriver();
 
-    int dut=0;
+    disableDriver();
+
     while(1)
     {
         // Check the busy flag in the uart7 register. If not busy, set transceiver pin low
@@ -165,9 +165,8 @@ main(void) {
 
         if (time_flag_motor==1){
             time_flag_motor=0;
-            updateAngle();
-            updateVelocity();
-            VelocityControl(5);
+
+            //VelocityControl(5);
 
             // VelocityControl();
             // Get current data
@@ -176,29 +175,6 @@ main(void) {
         if (time_flag_console == 1){
             time_flag_console = 0;
 
-            /*
-            if(f==1){
-                dut+=5;
-                if(dut>=60){
-                    f=0;
-                }
-            }
-            else{
-                dut-=5;
-                if(dut<=0){
-                    f=1;
-                }
-
-            }
-            */
-            //UARTprintf("fre: %d\n", 20);
-            //UARTprintf("getPWM: %d\n\n",(int)getPWM());
-            //updateTemp();
-            //UARTprintf("Temp: %d\n", (int)getTemp());
-            //updateCurrent();
-            //UARTprintf("\nCurrent: %d\n", (int)getCurrent());
-            //UARTprintf("Angle: %d\n", (int)getAngle());
-            UARTprintf("Vel: %d\n", (int)getVelocity());
         }
 
 
