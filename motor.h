@@ -37,6 +37,9 @@ float KP_current;
 float KI_current;
 float KD_current;
 
+float TARGET_VELO;
+float TARGET_ANGLE;
+
 uint8_t time_flag_motor;
 uint8_t time_flag_console;
 
