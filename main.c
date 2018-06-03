@@ -106,7 +106,7 @@ UARTIntHandler0(void)
         //
         char ch=ROM_UARTCharGetNonBlocking(UART0_BASE);
         ROM_UARTCharPutNonBlocking(UART0_BASE,ch);
-        enableDriver();
+        TARGET_ANGLE=36*(int)(ch-'0');
         //zeroPosition();
 
     }
@@ -146,37 +146,15 @@ main(void) {
     UARTprintf("Initialized\n\n");
 
 
-    disableDriver();
+
+    //disableDriver();
 
     while(1)
     {
         // Check the busy flag in the uart7 register. If not busy, set transceiver pin low
-
         if (UARTReady()){
             UARTSetRead();
         }
-
-        // Check if button is pushed for zero position
-        /*uint8_t ui8Buttons = ButtonsPoll(0, 0);
-        if (ui8Buttons & USR_SW1){
-            zeroPosition();
-        }
-        */
-
-        if (time_flag_motor==1){
-            time_flag_motor=0;
-
-            //VelocityControl(5);
-
-            // VelocityControl();
-            // Get current data
-        }
-
-        if (time_flag_console == 1){
-            time_flag_console = 0;
-
-        }
-
 
     }
 }
