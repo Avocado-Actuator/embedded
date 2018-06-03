@@ -10,14 +10,12 @@ int     direction=-1;//clockwise if direction is 1, counterclockwise if direcion
 
 // angle
 float   ANGLE,
-        TARGET_ANGLE,
         PrevAngle,
         angleErrorInt;
 
 // velocity
 float   VELO=0;
-float        TARGET_VELO,
-        prevVelo,
+float   prevVelo,
         lastVeloError,
         prevVeloError,
         outputCurrent=0;
@@ -43,20 +41,17 @@ void Timer0IntHandler(void)
 {
     // Clear the timer interrupt.
     ROM_TimerIntClear(TIMER0_BASE, TIMER_TIMA_TIMEOUT);
-    time_flag_motor=1;
-
     updateAngle();
     updateVelocity();
-    PWMoutput(20);
-    //VelocityControl(80);
+
+    //PWMoutput(-20);
+    PositionControl(TARGET_ANGLE);
+    //VelocityControl(TARGET_VELO);
 
 }
 
 void Timer1IntHandler(void){
     ROM_TimerIntClear(TIMER1_BASE, TIMER_TIMA_TIMEOUT);
-    time_flag_console=1;
-
-
     //UARTprintf("fre: %d\n", 20);
     //UARTprintf("getPWM: %d\n\n",(int)getPWM());
     //updateTemp();
@@ -64,10 +59,11 @@ void Timer1IntHandler(void){
     //updateCurrent();
     //UARTprintf("\nCurrent: %d\n", (int)getCurrent());
     //UARTprintf("Angle: %d\n", (int)getAngle());
-    UARTprintf("outputPWM:%d\n",(int)outputCurrent);
+    UARTprintf("targetAngle:%d\n",(int)TARGET_ANGLE);
+    UARTprintf("Angle:%d\n",(int)getAngle());
+    //UARTprintf("OutVelo:%d\n",(int)outputVelo);
+    UARTprintf("OutputPWM:%d\n\n",(int)outputCurrent);
     //UARTprintf("actual PWM:%d\n",(int)getPWM());
-    UARTprintf("Vel: %d\n", (int)getVelocity());
-
 }
 
 //*****************************************************************************
@@ -80,23 +76,21 @@ void Timer1IntHandler(void){
 void MotorInit(uint32_t g_ui32SysClock)
 {
     // variable inits
-    time_flag_motor = 0;
-    time_flag_console = 0;
-    frequency = 5000; //2500-9000
     duty=0;
 
-    KP_velocity=0;
-    KI_velocity=0.1;
-    KD_velocity=0;
+    KP_velocity=0.01;
+    KI_velocity=0.05;
+    KD_velocity=0.001;
 
-    KP_angle=0.05;
-    KI_angle=0.001;
+    KP_angle=1;
+    KI_angle=0.05;
     KD_angle=0;
 
     KP_current=0;
     KI_current=0;
     KD_current=0;
 
+    TARGET_VELO=0;
     UARTprintf("initializing motor driver...\n");
 
     PWMInit();
@@ -209,10 +203,12 @@ void MotorSPISetting(){
     while(SSIDataGetNonBlocking(SSI2_BASE, &pui32DataRx[0])){
        }
 
-       pui32DataTx[0] = 0b0001000001000000; // set register 2h, bit 6 and 5 to 10, option 3, 1x PWM mode, bit 4 to 0, synchronous
-       pui32DataTx[1] = 0b1001000000000000; // read register 2h, first bit is 1 for reading
-       pui32DataTx[2]=  0b0011001010000011; // read register 6h, was 01010000011
-       pui32DataTx[3]=  0b1011000000000000; // read register 6h
+       pui32DataTx[0] = 0b1001000000000000; // set register 2h, bit 6 and 5 to 10, option 3, 1x PWM mode, bit 4 to 0, synchronous
+       pui32DataTx[1] = 0b0001000001000000; // read register 2h, first bit is 1 for reading
+       pui32DataTx[2] = 0b1001000000000000;
+       pui32DataTx[3]=  0b1001000000000000;
+       //pui32DataTx[2]=  0b0011001010000011; // read register 6h, was 01010000011
+       //pui32DataTx[3]=  0b1011000000000000; // read register 6h
 
        GPIOPinWrite(GPIO_PORTD_BASE,GPIO_PIN_2,0);
        SysCtlDelay(1);
@@ -236,8 +232,6 @@ void MotorSPISetting(){
 
    SysCtlDelay(1000);
 }
-
-
 
 //*****************************************************************************
 // return the angle (unit: degree)
@@ -283,9 +277,18 @@ void updateVelocity() {
     diff=diff>180?diff-360:diff;
 
     prevVelo=getVelocity();
-    float newVelo=diff*100/360*60;
-    if((prevVelo-newVelo)<200 && (prevVelo-newVelo)>-200)
-        setVelocity(newVelo); // assumes measuring velocity every 1 mili seconds
+    float newVelo=diff*100/360*60;// assumes measuring velocity every 1 mili seconds
+
+    if(newVelo-prevVelo>50){
+        setVelocity(prevVelo+50);
+    }
+    else if(newVelo-prevVelo<-50){
+        setVelocity(prevVelo-50);
+    }
+    else{
+        setVelocity(newVelo);
+    }
+
 }
 
 //*****************************************************************************
@@ -293,22 +296,24 @@ void updateVelocity() {
 // input: dut, percentage of full output. Motor spins clockwise if dut is positive, and counterclockwise if negative.
 //*****************************************************************************
 void PWMoutput(int dut){
-
-    UARTprintf("dut: %d\n", dut);
-    //TODO: test what if duty is 0
- if(dut<0){
+    if(dut==0){
+        PWMPulseWidthSet(PWM0_BASE, PWM_GEN_2, 1);
+    }
+    else if(dut<0){
         dut=-dut;
         //UARTprintf("Negative\n");
         //enableDriver();
         GPIOPinWrite(GPIO_PORTP_BASE, GPIO_PIN_1,0);//clockwise from the bottom
+        PWMPulseWidthSet(PWM0_BASE, PWM_GEN_2, 9600*dut/100);
     }
     else if(dut>0){
         //UARTprintf("positive\n");
         //enableDriver();
         GPIOPinWrite(GPIO_PORTP_BASE, GPIO_PIN_1,GPIO_PIN_1);
+        PWMPulseWidthSet(PWM0_BASE, PWM_GEN_2, 9600*dut/100);
     }
 
-    PWMPulseWidthSet(PWM0_BASE, PWM_GEN_2, 9600*dut/100);
+
 }
 
 //*****************************************************************************
@@ -324,7 +329,7 @@ uint32_t getPWM(){
 //*****************************************************************************
 void brake(){
     PWMoutput(0);
-	UARTprintf("\nbraking");
+	//UARTprintf("\nbraking");
     //untested
     //GPIOPinWrite(GPIO_PORTP_BASE, GPIO_PIN_1,0);
     //PWMoutput(5000,0);
@@ -348,12 +353,12 @@ void PositionControl(float target)
     float error = target - getAngle();
     error=error<-180?error+360:error;
     error=error>180?error-360:error;
-	if ( error<=5 && error>=-5){//if reach the target position, trigger break
-	    //maybe you want to hold it instead of brake like
-	    //VelocityControl(0);
-		brake();
-		return;
-	}
+//	if ( error<=5 && error>=-5){//if reach the target position, trigger break
+//	    //maybe you want to hold it instead of brake like
+//	    //VelocityControl(0);
+//		brake();
+//		return;
+//	}
     //error*=direction;
     //error=error>0?error:error+360;
     angleErrorInt+=error;
@@ -379,11 +384,21 @@ void VelocityControl(float target)
     lastVeloError=error;
 
 
-    if(outputCurrent>40){
-        outputCurrent=40;}
+    if(target>0){
+        if(outputCurrent>40){
+            outputCurrent=40;}
 
-    if(outputCurrent<-40){
-        outputCurrent=-40;}
+        if(outputCurrent<0){
+            outputCurrent=0;}
+    }
+    else if(target<0){
+        if(outputCurrent<-40){
+            outputCurrent=-40;}
+
+        if(outputCurrent>0){
+            outputCurrent=0;}
+    }
+
     PWMoutput((int)outputCurrent);
     //skip currentcontrol
     //CurrentControl(outputCurrent);
