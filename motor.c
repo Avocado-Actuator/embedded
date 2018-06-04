@@ -41,11 +41,11 @@ void Timer0IntHandler(void)
 {
     // Clear the timer interrupt.
     ROM_TimerIntClear(TIMER0_BASE, TIMER_TIMA_TIMEOUT);
-    updateAngle();
-    updateVelocity();
+//    updateAngle();
+//    updateVelocity();
 
     //PWMoutput(-20);
-    PositionControl(TARGET_ANGLE);
+//    PositionControl(TARGET_ANGLE);
     //VelocityControl(TARGET_VELO);
 
 }
@@ -56,14 +56,20 @@ void Timer1IntHandler(void){
     //UARTprintf("getPWM: %d\n\n",(int)getPWM());
     //updateTemp();
     //UARTprintf("Temp: %d\n", (int)getTemp());
-    //updateCurrent();
-    //UARTprintf("\nCurrent: %d\n", (int)getCurrent());
+    updateCurrent();
+//    UARTprintf("\nCurrent: %d\n", (int)getCurrent());
     //UARTprintf("Angle: %d\n", (int)getAngle());
-    UARTprintf("targetAngle:%d\n",(int)TARGET_ANGLE);
-    UARTprintf("Angle:%d\n",(int)getAngle());
+//    UARTprintf("targetAngle:%d\n",(int)TARGET_ANGLE);
+//    UARTprintf("Angle:%d\n",(int)getAngle());
     //UARTprintf("OutVelo:%d\n",(int)outputVelo);
-    UARTprintf("OutputPWM:%d\n\n",(int)outputCurrent);
+//    UARTprintf("OutputPWM:%d\n\n",(int)outputCurrent);
     //UARTprintf("actual PWM:%d\n",(int)getPWM());
+    uint32_t h1 = GPIOPinRead(GPIO_PORTN_BASE, GPIO_PIN_0);
+    uint32_t h2 = GPIOPinRead(GPIO_PORTP_BASE, GPIO_PIN_3);
+    uint32_t h3 = GPIOPinRead(GPIO_PORTQ_BASE, GPIO_PIN_4);
+    UARTprintf("H1:%d\n",(int)h1);
+    UARTprintf("H2:%d\n",(int)h2);
+    UARTprintf("H3:%d\n",(int)h3);
 }
 
 //*****************************************************************************
@@ -114,7 +120,7 @@ void MotorInit(uint32_t g_ui32SysClock)
     MotorSPIInit(g_ui32SysClock);
     MotorSPISetting();
 
-
+    HallSensorInit();
     TimerInit(g_ui32SysClock);
     //zeroPosition();
     UARTprintf("motor driver initialized!\n");
@@ -197,6 +203,25 @@ void MotorSPIInit(uint32_t ui32SysClock)
     SSIEnable(SSI2_BASE);
 }
 
+void HallSensorInit(){
+    SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOQ);
+    SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOP);
+    SysCtlPeripheralEnable(SYSCTL_PERIPH_GPION);
+    // Configure input pins for hall sensors
+    GPIOPinTypeGPIOInput(GPIO_PORTQ_BASE, GPIO_PIN_4); // H3
+    GPIOPinTypeGPIOInput(GPIO_PORTP_BASE, GPIO_PIN_3); // H2
+    GPIOPinTypeGPIOInput(GPIO_PORTN_BASE, GPIO_PIN_0); // H1
+    UARTprintf("Hall sensors initialized\n");
+
+    SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOA);
+    GPIOPinTypeGPIOInput(GPIO_PORTA_BASE, GPIO_PIN_4|GPIO_PIN_2|GPIO_PIN_3);
+    IntEnable(INT_GPIOA);
+    GPIOIntEnable(GPIO_PORTA_BASE, flag);
+    IntMasterEnable();
+    GPIOIntTypeSet(GPIO_PORTA_BASE,GPIO_PIN_2,GPIO_RISING_EDGE);
+    IntEnable(INT_GPIOA);
+}
+
 void MotorSPISetting(){
 
 
@@ -205,10 +230,10 @@ void MotorSPISetting(){
 
        pui32DataTx[0] = 0b1001000000000000; // set register 2h, bit 6 and 5 to 10, option 3, 1x PWM mode, bit 4 to 0, synchronous
        pui32DataTx[1] = 0b0001000001000000; // read register 2h, first bit is 1 for reading
-       pui32DataTx[2] = 0b1001000000000000;
-       pui32DataTx[3]=  0b1001000000000000;
-       //pui32DataTx[2]=  0b0011001010000011; // read register 6h, was 01010000011
-       //pui32DataTx[3]=  0b1011000000000000; // read register 6h
+       //pui32DataTx[2] = 0b1001000000000000;
+       //pui32DataTx[3]=  0b1001000000000000;
+       pui32DataTx[2]=  0b0011001011000011; // read register 6h, was 01010000011
+       pui32DataTx[3]=  0b1011000000000000; // read register 6h
 
        GPIOPinWrite(GPIO_PORTD_BASE,GPIO_PIN_2,0);
        SysCtlDelay(1);
