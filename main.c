@@ -20,7 +20,6 @@
 #include "utils/uartstdio.c" // NEW INCLUDE!!!
 #include "rs485.h" // NEW INCLUDE!!!
 #include "reflectance.h" // NEW INCLUDE!!!
-#include "buttons.h" // NEW INCLUDE!!!
 #include "mag_encoder.h" // NEW INCLUDE!!!
 #include "motor.h"
 #include "temp.h"
@@ -93,7 +92,6 @@ main(void) {
     CurrentSenseInit();
     EncoderInit(g_ui32SysClock);
     ReflectInit();
-    ButtonsInit();
     MotorInit(g_ui32SysClock);
     TempInit(g_ui32SysClock);
     UARTprintf("Initialized\n\n");
