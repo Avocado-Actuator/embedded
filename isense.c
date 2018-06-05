@@ -38,18 +38,36 @@ float getTargetCurrent() { return TargetCurrent; }
 void setTargetCurrent(float newCurrent) { TargetCurrent = newCurrent; }
 
 void updateCurrent() {
-    ADCProcessorTrigger(ADC0_BASE, 2); // Trigger the ADC conversion.
-    while(!ADCIntStatus(ADC0_BASE, 2, false)){} // Wait for conversion to be completed.
-    ADCIntClear(ADC0_BASE, 2); // Clear the ADC interrupt flag.
-    ADCSequenceDataGet(ADC0_BASE, 2, isensereadings); // Read ADC Value.
-    int i;
-    float volt, sum = 0;
-    for (i = 0; i <= CURRENT_CHANNELS; i++ ){
-        volt = isensereadings[i] / 4095 * 3.3; // turns analog value into voltage
-        // i = (Vref / 2 - Vmeasured) / (gain * Rsense)
-        sum += (3.3/2 - volt) / (10 * 0.014);
+    float volt,sum=0;
+    int j;
+    for (j=0;j<CURRENT_SAMPLES_NUM;j++){
+        ADCProcessorTrigger(ADC0_BASE, 2); // Trigger the ADC conversion.
+        while(!ADCIntStatus(ADC0_BASE, 2, false)){} // Wait for conversion to be completed.
+        ADCIntClear(ADC0_BASE, 2); // Clear the ADC interrupt flag.
+        ADCSequenceDataGet(ADC0_BASE, 2, isensereadings); // Read ADC Value.
+        int i;
+        for (i = 0; i < CURRENT_CHANNELS; i++ ){
+            volt = isensereadings[i] / 4095 * 3.3; // turns analog value into voltage
+            // i = (Vref / 2 - Vmeasured) / (gain * Rsense)
+            isense[i]=(3.3/2 - volt) / (10 * 0.014);
+        }
+        uint32_t h1 = GPIOPinRead(GPIO_PORTN_BASE, GPIO_PIN_0);
+        uint32_t h2 = GPIOPinRead(GPIO_PORTP_BASE, GPIO_PIN_3);
+        uint32_t h3 = GPIOPinRead(GPIO_PORTQ_BASE, GPIO_PIN_4);
+
+        if(h1==0 && h2>0){
+            sum+=isense[0];
+        }
+        else if(h2==0 && h3>0){
+            sum+=isense[1];
+        }
+        else if(h3==0 && h1>0){
+            sum+=isense[2];
+        }
     }
+
+
     PrevCurrent = getCurrent();
-    setCurrent(sum);
+    setCurrent(sum/CURRENT_SAMPLES_NUM);
     return;
 }
