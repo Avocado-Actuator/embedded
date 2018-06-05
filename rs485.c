@@ -25,7 +25,7 @@ RSInit(uint32_t g_ui32SysClock){
     // enable tied pin as input to read output of enable pin
     GPIOPinTypeGPIOInput(GPIO_PORTC_BASE, GPIO_PIN_7);
     // Write transceiver enable pin low for listening
-    UARTSetRead();
+    //UARTSetRead();
     // Configure the UART for 115,200, 8-N-1 operation.
     ROM_UARTConfigSetExpClk(UART7_BASE, uartSysClock, 9600,
                             (UART_CONFIG_WLEN_8 | UART_CONFIG_STOP_ONE |
@@ -63,7 +63,7 @@ UARTSend(const uint8_t *pui8Buffer, uint32_t ui32Count)
     // Add CRC byte to message
     uint8_t crc = crc8(0, (const unsigned char*) &msg, len);
     // Set transceiver rx/tx pin high to send
-    UARTSetWrite();
+    //UARTSetWrite();
 
 
     bool space = true;

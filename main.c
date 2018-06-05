@@ -110,20 +110,20 @@ main(void) {
     while(1)
     {
         // Check the busy flag in the uart7 register. If not busy, set transceiver pin low
-        if (UARTReady()){
+        /*if (UARTReady()){
             UARTSetRead();
             UARTprintf("Setting low");
-        }
+        }*/
 
-       if(counter % iter_mod == 0) {
+       /*if(counter % iter_mod == 0) {
            UARTprintf("\n\nSending fuck\n");
            UARTSend((const uint8_t*) "fuck\n", 5);
            UARTprintf("Pin is  %d\n", GPIOPinRead(GPIO_PORTC_BASE, GPIO_PIN_7));
 
            UARTprintf("\nIteration %d\n", counter);
-       }
+       }*/
 
-       ++counter;
+       //++counter;
 
         // Check if button is pushed for zero position
         /*uint8_t ui8Buttons = ButtonsPoll(0, 0);
