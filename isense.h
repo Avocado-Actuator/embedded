@@ -21,6 +21,7 @@
 
 #define CURRENT_CHANNELS 3
 #define CURRENT_SAMPLES_NUM 20
+#define CSA_GAIN 20
 //
 // This array is used for storing the data read from the ADC FIFO. It
 // must be as large as the FIFO for the sequencer in use.
