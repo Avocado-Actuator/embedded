@@ -135,26 +135,27 @@ main(void) {
     //UARTSend((uint8_t *)"\033[2JTiva has turned on\n\r", 24);
 
     UARTprintf("Initializing...\n");
-    RSInit(g_ui32SysClock); // Initialize the RS485 link
-    CurrentSenseInit();
+    //RSInit(g_ui32SysClock); // Initialize the RS485 link
+
     EncoderInit(g_ui32SysClock);
     ReflectInit();
     ButtonsInit();
     TempInit(g_ui32SysClock);
     MotorInit(g_ui32SysClock);
+    CurrentSenseInit();
 
     UARTprintf("Initialized\n\n");
 
 
-
-    //disableDriver();
+    PWMoutput(0);
+    disableDriver();
 
     while(1)
     {
         // Check the busy flag in the uart7 register. If not busy, set transceiver pin low
-        if (UARTReady()){
-            UARTSetRead();
-        }
+//        if (UARTReady()){
+//            UARTSetRead();
+//        }
 
     }
 }
