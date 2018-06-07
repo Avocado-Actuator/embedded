@@ -36,19 +36,22 @@ void CurrentSenseInit(void) {
     ADCIntClear(ADC0_BASE, 2);
 
     PWMoutput(0);
+    SysCtlDelay(12000000);
+    // Determine offset for each CSA
     int j;
-    for (j=0;j<CURRENT_SAMPLES_NUM;j++){
+    for (j=0;j<OFFSET_SAMPLES;j++){
             ADCProcessorTrigger(ADC0_BASE, 2); // Trigger the ADC conversion.
             while(!ADCIntStatus(ADC0_BASE, 2, false)){} // Wait for conversion to be completed.
             ADCIntClear(ADC0_BASE, 2); // Clear the ADC interrupt flag.
             ADCSequenceDataGet(ADC0_BASE, 2, isensereadings); // Read ADC Value.
             int i;
             for (i = 0; i < CURRENT_CHANNELS; i++ ){
+//                UARTprintf("Reading %d: %d\n", i, (int)isensereadings[i]);
                 offset[i]+=isensereadings[i];
             }
         }
     for(j=0;j<3;j++){
-        offset[j]=2048-offset[j]/CURRENT_SAMPLES_NUM;
+        offset[j]=2048-offset[j]/OFFSET_SAMPLES;
         UARTprintf("offset %d:%d\n",j,offset[j]);
     }
 
@@ -64,23 +67,24 @@ void setTargetCurrent(float newCurrent) { TargetCurrent = newCurrent; }
 void updateCurrent() {
     float volt,sum=0;
     int j;
-    for (j=0;j<CURRENT_SAMPLES_NUM;j++){
+    for (j=0;j<CURRENT_SAMPLES;j++){
         ADCProcessorTrigger(ADC0_BASE, 2); // Trigger the ADC conversion.
         while(!ADCIntStatus(ADC0_BASE, 2, false)){} // Wait for conversion to be completed.
         ADCIntClear(ADC0_BASE, 2); // Clear the ADC interrupt flag.
         ADCSequenceDataGet(ADC0_BASE, 2, isensereadings); // Read ADC Value.
+        uint32_t h1 = GPIOPinRead(GPIO_PORTP_BASE, GPIO_PIN_5); // Read Hall Sensors
+        uint32_t h2 = GPIOPinRead(GPIO_PORTP_BASE, GPIO_PIN_3);
+        uint32_t h3 = GPIOPinRead(GPIO_PORTP_BASE, GPIO_PIN_2);
+
         int i;
         for (i = 0; i < CURRENT_CHANNELS; i++ ){
-            UARTprintf("Raw ADC %d:%d\n",i,isensereadings[i]);
+            //UARTprintf("Raw ADC %d:%d\n",i,isensereadings[i]);
             volt = (float)(isensereadings[i]+offset[i]) / 4095.0 * 3.3; // turns analog value into voltage
 			UARTprintf("Voltage %d:%d\n",i,(int)(volt*1000));
             // i = (Vref / 2 - Vmeasured) / (gain * Rsense)
             isense[i]=(3.3/2 - volt) / (CSA_GAIN * 0.068);
         }
 
-        uint32_t h1 = GPIOPinRead(GPIO_PORTP_BASE, GPIO_PIN_5);
-        uint32_t h2 = GPIOPinRead(GPIO_PORTP_BASE, GPIO_PIN_3);
-        uint32_t h3 = GPIOPinRead(GPIO_PORTP_BASE, GPIO_PIN_2);
 		UARTprintf("H1:%d\n",(int)h1);
 		UARTprintf("H2:%d\n",(int)h2);
 		UARTprintf("H3:%d\n",(int)h3);
@@ -98,6 +102,6 @@ void updateCurrent() {
 	UARTprintf("Current :%d\n",(int)(sum*1000));
 	
     PrevCurrent = getCurrent();
-    setCurrent(sum/CURRENT_SAMPLES_NUM);
+    setCurrent(sum/CURRENT_SAMPLES);
     return;
 }

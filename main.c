@@ -147,8 +147,8 @@ main(void) {
     UARTprintf("Initialized\n\n");
 
 
-    PWMoutput(0);
-    disableDriver();
+    PWMoutput(30);
+    //disableDriver();
 
     while(1)
     {

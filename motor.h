@@ -52,7 +52,7 @@ void MotorInit(uint32_t);
 void CurrentControl(float);
 void VelocityControl(float);
 void PositionControl(float);
-
+void HallSensorInit(void);
 
 float getAngle(void);
 void setAngle(float);
