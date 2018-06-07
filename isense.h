@@ -20,14 +20,15 @@
 #include "rs485.h"
 
 #define CURRENT_CHANNELS 3
-#define CURRENT_SAMPLES_NUM 20
+#define OFFSET_SAMPLES 20
+#define CURRENT_SAMPLES 1
 #define CSA_GAIN 20
 //
 // This array is used for storing the data read from the ADC FIFO. It
 // must be as large as the FIFO for the sequencer in use.
 uint32_t isensereadings[4];
 float isense[3];
-float current_samples[CURRENT_SAMPLES_NUM];
+//float current_samples[CURRENT_SAMPLES];
 
 void CurrentSenseInit(void);
 

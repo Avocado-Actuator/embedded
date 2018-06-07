@@ -53,12 +53,12 @@ void Timer0IntHandler(void)
 
 void Timer1IntHandler(void){
     ROM_TimerIntClear(TIMER1_BASE, TIMER_TIMA_TIMEOUT);
-    updateAngle();
+    //updateAngle();
     //UARTprintf("fre: %d\n", 20);
     //UARTprintf("getPWM: %d\n\n",(int)getPWM());
-    //updateTemp();
-    //UARTprintf("Temp: %d\n", (int)getTemp());
-    //updateCurrent();
+    updateTemp();
+    UARTprintf("Temp: %d\n", (int)getTemp());
+    updateCurrent();
 //    UARTprintf("\nCurrent: %d\n", (int)getCurrent());
     //UARTprintf("Angle: %d\n", (int)getAngle());
 //    UARTprintf("targetAngle:%d\n",(int)TARGET_ANGLE);
@@ -276,6 +276,7 @@ void updateAngle() {
 
     // Calculate final angle position in degrees
     setAngle(calcFinalAngle(angle, section));
+//    UARTprintf("Final angle: %d\n", (int)getAngle());
     return;
 }
 
