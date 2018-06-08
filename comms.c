@@ -76,6 +76,8 @@ void CommsInit(uint32_t g_ui32SysClock){
     message_counter = 0;
     panic_counter = 0;
 
+    MAIN_COMMAND_MODE = ModePos;
+
     UARTprintf("Communication initialized\n");
 }
 
@@ -190,6 +192,7 @@ void setData(enum Parameter par, union Flyte * value, bool verbose) {
 
     switch(par) {
         case Pos: {
+            MAIN_COMMAND_MODE = ModePos;
             setTargetAngle(value->f);
             if(verbose) {
                 UARTprintf("New target angle: ");
@@ -200,6 +203,7 @@ void setData(enum Parameter par, union Flyte * value, bool verbose) {
         }
 
         case Vel: {
+            MAIN_COMMAND_MODE = ModeVel;
             setTargetVelocity(value->f);
             if(verbose) {
                 UARTprintf("New target velocity: ");
@@ -210,6 +214,7 @@ void setData(enum Parameter par, union Flyte * value, bool verbose) {
         }
 
         case Cur: {
+            MAIN_COMMAND_MODE = ModeCur;
             setTargetCurrent(value->f);
             if(verbose) {
                 UARTprintf("New target current: ");
