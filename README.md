@@ -19,7 +19,7 @@ Instructions for using CCS with this repo:
       ![File Search Path](https://raw.githubusercontent.com/Avocado-Actuator/embedded/assets/images/file_search_path.png)
     - Penultimately, under `Build -> ARM Compiler -> Predefined Symbols` in the `Pre-define NAME` pane add `TARGET_IS_TM4C129_RA0`.
       ![Predefined Symbols](https://raw.githubusercontent.com/Avocado-Actuator/embedded/assets/images/predefined_symbols.png)
-    - Finally, under `Build -> ARM Compiler -> Basic Options` set the `Set C system stack size` option to `65536`.
+    - Finally, under `Build -> ARM Linker -> Basic Options` set the `Set C system stack size` option to `65536`.
       ![Stack Size](https://raw.githubusercontent.com/Avocado-Actuator/embedded/assets/images/stack_size.png)
 6. Go ahead and build! If something is still wrong let us know and we'll try and help :)
 
