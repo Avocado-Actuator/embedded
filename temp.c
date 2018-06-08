@@ -6,6 +6,7 @@
  */
 
 #include "temp.h"
+#include "motor.h"
 
 float Temp, PrevTemp;
 //jdkshlfk
@@ -58,5 +59,9 @@ void updateTemp(){
     PrevTemp = getTemp();
     setTemp(decimal+intergral);
     //UARTprintf("after: %d\n", data);
+
+    if(Temp>MAX_TEMP){
+        brake();
+    }
     return;
 }
