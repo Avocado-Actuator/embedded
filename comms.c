@@ -1,14 +1,10 @@
-/*
- * comms.c
- *
- *  Created on: Apr 21, 2018
- *      Author: Ryan
- */
-
 #include "comms.h"
 
-uint8_t ADDRESS,
-        BRAIN_ADDRESS;
+uint8_t ADDRESS, BRAIN_ADDRESS;
+
+// <<<<<<<<<<<<<<<>>>>>>>>>>>>>>
+// <<<<<<<<<<<< INITS >>>>>>>>>>
+// <<<<<<<<<<<<<<<>>>>>>>>>>>>>>
 
 void
 RSInit(uint32_t g_ui32SysClock){
@@ -35,6 +31,31 @@ RSInit(uint32_t g_ui32SysClock){
     ROM_UARTIntEnable(UART7_BASE, UART_INT_RX | UART_INT_RT);
     UARTprintf("comms initialized\n");
     return;
+}
+
+/**
+ * Initializes UART0 for console output using UARTStdio
+ */
+void ConsoleInit(void) {
+    // Enable GPIO port A which is used for UART0 pins.
+    SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOA);
+    // Configure the pin muxing for UART0 functions on port A0 and A1.
+    // This step is not necessary if your part does not support pin muxing.
+    GPIOPinConfigure(GPIO_PA0_U0RX);
+    GPIOPinConfigure(GPIO_PA1_U0TX);
+    // Enable UART0 so that we can configure the clock.
+    SysCtlPeripheralEnable(SYSCTL_PERIPH_UART0);
+    // Use the internal 16MHz oscillator as the UART clock source.
+    UARTClockSourceSet(UART0_BASE, UART_CLOCK_PIOSC);
+    // Select the alternate (UART) function for these pins.
+    GPIOPinTypeUART(GPIO_PORTA_BASE, GPIO_PIN_0 | GPIO_PIN_1);
+    // Initialize the UART for console I/O.
+    UARTStdioConfig(0, 9600, 16000000);
+
+    // Enable the UART interrupt.
+    ROM_IntEnable(INT_UART0);
+    ROM_UARTIntEnable(UART0_BASE, UART_INT_RX | UART_INT_RT);
+    UARTprintf("Console initialized\n");
 }
 
 //*****************************************************************************
