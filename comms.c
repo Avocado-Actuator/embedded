@@ -182,8 +182,11 @@ void UARTPrintFloat(float val, bool verbose) {
  * @param verbose - if true print to console for debugging
  */
 void setData(enum Parameter par, union Flyte * value, bool verbose) {
-    if(verbose) UARTprintf("\nin setData\n");
-    if(verbose) UARTprintf("Target value: %d\n", value->f);
+    // if(verbose) UARTprintf("\nin setData\n");
+    if(verbose) {
+        UARTprintf("New val: ");
+        UARTPrintFloat(value->f, false);
+    }
     switch(par) {
         case Pos: {
             setTargetAngle(value->f);
@@ -394,15 +397,13 @@ uint16_t handleUART(uint8_t* buffer, uint32_t length, bool verbose) {
     if(tempaddr == BROADCAST_ADDR) return NO_RESPONSE;
 
     if(verbose) {
-        UARTprintf("\nNew message:\n");
         int i;
-        for (i = 0; i < length; ++i) {
-            UARTprintf("Byte %d: %x\n", i, buffer[i]);
-        }
+        UARTprintf("****** Message ******\n");
+        for (i = 0; i < length; ++i) UARTprintf("%x ", buffer[i]);
         UARTprintf("\n");
     }
 
-    if(verbose) UARTprintf("Address: %x\n", tempaddr);
+    if(verbose) UARTprintf("Addr - %x", tempaddr);
 
 
     uint8_t crcin = recv[length-2];
@@ -415,30 +416,30 @@ uint16_t handleUART(uint8_t* buffer, uint32_t length, bool verbose) {
     }
 
     uint8_t id = recv[ID_IND];
-    if(verbose) UARTprintf("ID: %x\n", id);
+    if(verbose) UARTprintf(", ID - %x", id);
 
     if (tempaddr == ADDRSET_ADDR) {
         setAddress(buffer[ADDRSET_IND]);
-        if(verbose) UARTprintf("Set address to %x\n", getAddress());
+        if(verbose) UARTprintf("\nSet address to %x\n", getAddress());
         setStatus(COMMAND_SUCCESS);
         return (uint16_t) id;
     } else if(tempaddr != getAddress()) {
-        if(verbose) UARTprintf("Not my address, abort\n");
+        if(verbose) UARTprintf("\nNot my address, abort\n");
         return NO_RESPONSE;
     }
 
     enum Command type = buffer[COM_IND] & CMD_MASK ? Set : Get;
-    if(verbose) UARTprintf("Command: %s\n", getCommandName(type));
+    if(verbose) UARTprintf(", com - %s", getCommandName(type));
 
 
     enum Parameter par = buffer[COM_IND] & PAR_MASK;
     if(par > MAX_PAR_VAL) {
-        if(verbose) UARTprintf("No parameter specified, abort");
+        if(verbose) UARTprintf("\nNo parameter specified, abort");
         clearStatus(COMMAND_FAILURE);
         return (uint16_t) id;
     }
 
-    if(verbose) UARTprintf("Parameter: %s\n", getParameterName(par));
+    if(verbose) UARTprintf(", par - %s\n", getParameterName(par));
 
     if(type == Set) {
         if (length < 5){
@@ -487,10 +488,9 @@ void UARTSend(const uint8_t *buffer, uint32_t length) {
     msg[len++] = crc;
     msg[len++] = STOP_BYTE;
 
-    UARTprintf("Sending:\n");
-    for(i = 0; i < len; i++) {
-        UARTprintf("Byte %d: %x\n", i, msg[i]);
-    }
+    UARTprintf("****** Sending ******\n");
+    for(i = 0; i < len; i++) UARTprintf("%x ", msg[i]);
+    UARTprintf("\n*********************\n");
 
     bool space;
     for (i = 0; i < len; i++) {
@@ -515,11 +515,11 @@ void ConsoleIntHandler(void) {
     // Clear the asserted interrupts.
     ROM_UARTIntClear(UART0_BASE, ui32Status);
 
-    // Loop while there are characters in the receive FIFO.
-    while(ROM_UARTCharsAvail(UART0_BASE)) {
-        // Read the next character from the UART and write it back to the UART.
-        ROM_UARTCharPutNonBlocking(UART7_BASE, ROM_UARTCharGetNonBlocking(UART0_BASE));
-    }
+    // // Loop while there are characters in the receive FIFO.
+    // while(ROM_UARTCharsAvail(UART0_BASE)) {
+    //     // Read the next character from the UART and write it back to the UART.
+    //     ROM_UARTCharPutNonBlocking(UART7_BASE, ROM_UARTCharGetNonBlocking(UART0_BASE));
+    // }
 }
 
 /**
