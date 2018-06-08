@@ -53,6 +53,7 @@ void __error__(char *pcFilename, uint32_t ui32Line) { }
  * @return doesn't really matter
  */
 int main(void) {
+
     // Set the clocking to run directly from the crystal at 120MHz.
     g_ui32SysClock = MAP_SysCtlClockFreqSet(
         (SYSCTL_XTAL_25MHZ | SYSCTL_OSC_MAIN | SYSCTL_USE_PLL | SYSCTL_CFG_VCO_480),
@@ -75,27 +76,21 @@ int main(void) {
 
     UARTprintf("Initialized\n\n");
 
-
     PWMoutput(0);
-    //disableDriver();
 
-
-    while(1)
-    {
+    while(1) {
         if (cur_ctl_flag == 1){
             cur_ctl_flag = 0;
-//            count++;
             updateCurrent();
-//            CurrentControl(TARGET_CUR);
+            // CurrentControl(TARGET_CUR);
         }
+
         if (vel_ctl_flag == 1){
             vel_ctl_flag = 0;
-            count++;
             updateAngle();
             updateVelocity();
-            PositionControl(TARGET_ANGLE);
-//            VelocityControl(0);
-//            PositionControl(TARGET_ANGLE);
+            // PositionControl(TARGET_ANGLE);
+            VelocityControl(TARGET_VELO);
         }
 
     }
