@@ -5,74 +5,11 @@
 #include "motor.h"
 #include "isense.h"
 
-float   frequency,
-        duty;
-int     direction=-1;//clockwise if direction is 1, counterclockwise if direcion=-1
 
-// angle
-float   ANGLE,
-        PrevAngle,
-        angleErrorInt;
-
-// velocity
-float   VELO=0;
-float   prevVelo,
-        lastVeloError,
-        prevVeloError,
-        outputCurrent=0;
-
-// current
-float   CUR,
-        TARGET_CUR,
-        lastCurError,
-        prevCurError;
 
 uint32_t pui32DataTx[5];
 uint32_t pui32DataRx[5];
 
-
-//*****************************************************************************
-// Handler of timer interrupts, set a clock for program
-//
-// input: None
-//
-// return: None
-//*****************************************************************************
-void Timer0IntHandler(void)
-{
-    // Clear the timer interrupt.
-    ROM_TimerIntClear(TIMER0_BASE, TIMER_TIMA_TIMEOUT);
-//    updateAngle();
-//    updateVelocity();
-
-    //PWMoutput(-20);
-//    PositionControl(TARGET_ANGLE);
-    //VelocityControl(TARGET_VELO);
-
-}
-
-void Timer1IntHandler(void){
-    ROM_TimerIntClear(TIMER1_BASE, TIMER_TIMA_TIMEOUT);
-    //updateAngle();
-    //UARTprintf("fre: %d\n", 20);
-    //UARTprintf("getPWM: %d\n\n",(int)getPWM());
-    updateTemp();
-    UARTprintf("Temp: %d\n", (int)getTemp());
-    updateCurrent();
-//    UARTprintf("\nCurrent: %d\n", (int)getCurrent());
-    //UARTprintf("Angle: %d\n", (int)getAngle());
-//    UARTprintf("targetAngle:%d\n",(int)TARGET_ANGLE);
-//    UARTprintf("Angle:%d\n",(int)getAngle());
-    //UARTprintf("OutVelo:%d\n",(int)outputVelo);
-//    UARTprintf("OutputPWM:%d\n\n",(int)outputCurrent);
-    //UARTprintf("actual PWM:%d\n",(int)getPWM());
-//    uint32_t h1 = GPIOPinRead(GPIO_PORTN_BASE, GPIO_PIN_0);
-//    uint32_t h2 = GPIOPinRead(GPIO_PORTP_BASE, GPIO_PIN_3);
-//    uint32_t h3 = GPIOPinRead(GPIO_PORTQ_BASE, GPIO_PIN_4);
-//    UARTprintf("H1:%d\n",(int)h1);
-//    UARTprintf("H2:%d\n",(int)h2);
-//    UARTprintf("H3:%d\n",(int)h3);
-}
 
 //*****************************************************************************
 // Initializer of motor driver, including timer, PWM, SPI and GPIO
@@ -85,17 +22,20 @@ void MotorInit(uint32_t g_ui32SysClock)
 {
     // variable inits
     duty=0;
+    VELO=0;
+    outputCurrent=0;
+    direction=1;
 
-    KP_velocity=0.01;
-    KI_velocity=0.05;
-    KD_velocity=0.001;
+    KP_velocity=0.001;
+    KI_velocity=0.02;
+    KD_velocity=0.00;
 
-    KP_angle=1;
-    KI_angle=0.05;
-    KD_angle=0;
+    KP_angle=1.5;
+    KI_angle=0.01;
+    KD_angle=5;
 
     KP_current=0;
-    KI_current=0;
+    KI_current=0.005;
     KD_current=0;
 
     TARGET_VELO=0;
@@ -319,7 +259,7 @@ void updateVelocity() {
 // control the PWM output to motor driver
 // input: dut, percentage of full output. Motor spins clockwise if dut is positive, and counterclockwise if negative.
 //*****************************************************************************
-void PWMoutput(int dut){
+void PWMoutput(float dut){
     if(dut==0){
         PWMPulseWidthSet(PWM0_BASE, PWM_GEN_2, 1);
     }
@@ -327,14 +267,16 @@ void PWMoutput(int dut){
         dut=-dut;
         //UARTprintf("Negative\n");
         //enableDriver();
+        direction=0;
         GPIOPinWrite(GPIO_PORTP_BASE, GPIO_PIN_1,0);//clockwise from the bottom
-        PWMPulseWidthSet(PWM0_BASE, PWM_GEN_2, 9600*dut/100);
+        PWMPulseWidthSet(PWM0_BASE, PWM_GEN_2, (int)9600*dut/100);
     }
     else if(dut>0){
         //UARTprintf("positive\n");
         //enableDriver();
+        direction=1;
         GPIOPinWrite(GPIO_PORTP_BASE, GPIO_PIN_1,GPIO_PIN_1);
-        PWMPulseWidthSet(PWM0_BASE, PWM_GEN_2, 9600*dut/100);
+        PWMPulseWidthSet(PWM0_BASE, PWM_GEN_2, (int)9600*dut/100);
     }
 
 
@@ -389,7 +331,7 @@ void PositionControl(float target)
     if(angleErrorInt>=300){
         angleErrorInt=300;
     }
-    float outputVelo=KP_angle*error + KI_angle*angleErrorInt;// + KD_angle*angleErrorDiff;//P*e(k)+I*sigma(e)+D*(e(k)-e(k-1))
+    outputVelo=KP_angle*error + KI_angle*angleErrorInt;// + KD_angle*angleErrorDiff;//P*e(k)+I*sigma(e)+D*(e(k)-e(k-1))
     //lastAngleError=currentAngleError;
     //regulator
 
@@ -430,7 +372,7 @@ void VelocityControl(float target)
 
 //*****************************************************************************
 // incremental PID control of velocity
-// input: target current (unit: amp)
+// input: target current (unit: mA)
 //*****************************************************************************
 void CurrentControl(float target)
 {
@@ -439,11 +381,14 @@ void CurrentControl(float target)
 	prevCurError=lastCurError;
 	lastCurError=error;
     //regulator
-	if(duty<0){
-		duty=0;
+	if(duty<-80){
+		duty=-80;
 	}
+	else if(duty>80){
+        duty=80;
+    }
 
-   PWMoutput((int)duty);
+   PWMoutput(duty);
 }
 
 

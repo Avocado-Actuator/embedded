@@ -24,6 +24,29 @@
 #include "mag_encoder.h"
 #include "reflectance.h"
 
+float   frequency,
+        duty;
+int     direction;
+
+// angle
+float   ANGLE,
+        PrevAngle,
+        angleErrorInt,
+        outputVelo;
+
+// velocity
+float   VELO;
+float   prevVelo,
+        lastVeloError,
+        prevVeloError,
+        outputCurrent;
+
+// current
+float   CUR,
+        TARGET_CUR,
+        lastCurError,
+        prevCurError;
+
 //Velocity PID parameters
 float KP_velocity;
 float KI_velocity;
@@ -66,7 +89,7 @@ float getTargetVelocity(void);
 void setTargetVelocity(float);
 void updateVelocity(void);
 
-void PWMoutput(int);
+void PWMoutput(float);
 uint32_t getPWM(void);
 
 void brake(void);

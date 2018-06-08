@@ -82,26 +82,39 @@ void updateCurrent() {
             volt = (float)(isensereadings[i]+offset[i]) / 4095.0 * 3.3; // turns analog value into voltage
 			UARTprintf("Voltage %d:%d\n",i,(int)(volt*1000));
             // i = (Vref / 2 - Vmeasured) / (gain * Rsense)
-            isense[i]=(3.3/2 - volt) / (CSA_GAIN * 0.068);
+            isense[i]=(3.3/2 - volt) / (CSA_GAIN * 0.055);
         }
 
 		UARTprintf("H1:%d\n",(int)h1);
 		UARTprintf("H2:%d\n",(int)h2);
 		UARTprintf("H3:%d\n",(int)h3);
-        if(h1>0 && h2==0){
-            sum+=isense[0];
-        }
-        else if(h2>0 && h3==0){
-            sum+=isense[1];
-        }
-        else if(h3>0 && h1==0){
-            sum+=isense[2];
-        }
+		if(direction==1){
+            if(h1>0 && h2==0){
+                sum+=isense[0];
+            }
+            else if(h2>0 && h3==0){
+                sum+=isense[1];
+            }
+            else if(h3>0 && h1==0){
+                sum+=isense[2];
+            }
+		}
+		else{
+		    if(h1==0 && h2>0){
+                sum+=isense[0];
+            }
+            else if(h2==0 && h3>0){
+                sum+=isense[1];
+            }
+            else if(h3==0 && h1>0){
+                sum+=isense[2];
+            }
+		}
     }
 
-	UARTprintf("Current :%d\n",(int)(sum*1000));
+//	UARTprintf("Current :%d\n",(int)(sum*1000));
 	
     PrevCurrent = getCurrent();
-    setCurrent(sum/CURRENT_SAMPLES);
+    setCurrent(1000*sum/CURRENT_SAMPLES);//unit mA
     return;
 }
