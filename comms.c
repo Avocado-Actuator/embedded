@@ -477,9 +477,9 @@ void UARTSend(const uint8_t *buffer, uint32_t length) {
     msg[len++] = crc;
     msg[len++] = STOP_BYTE;
 
-//    for(i = 0; i < len; i++) {
-//        UARTprintf("Byte %d: %x\n", i, msg[i]);
-//    }
+    // for(i = 0; i < len; i++) {
+    //     UARTprintf("Byte %d: %x\n", i, msg[i]);
+    // }
 
     bool space;
     for (i = 0; i < len; i++) {
@@ -525,7 +525,7 @@ void UARTIntHandler(void) {
     // Loop while there are characters in the receive FIFO.
     // Read the next character from the UART and write it back to the UART.
     uint8_t character = ROM_UARTCharGetNonBlocking(UART7_BASE);
-//    UARTprintf("Byte: %x\n", character);
+    // UARTprintf("Byte: %x\n", character);
     recv[recvIndex++] = character;
 
     if(character == STOP_BYTE) {
@@ -534,7 +534,7 @@ void UARTIntHandler(void) {
         recvIndex = 0;
 
         if(len >= 3) {
-            uint16_t id = handleUART(recv, len, /*verbose=*/true);
+            uint16_t id = handleUART(recv, len, /*verbose=*/false);
             if(id == NO_RESPONSE) {}
             else if(id < 256) {
                 uint8_t msg[2];

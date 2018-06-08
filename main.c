@@ -63,10 +63,8 @@ int main(void) {
     ConsoleInit(); // Initialized UART0 for console output using UARTStdio
     CommsInit(g_ui32SysClock);
     UARTprintf("\n\nTiva has turned on...\n");
-    //UARTSend((uint8_t *)"\033[2JTiva has turned on\n\r", 24);
 
     UARTprintf("Initializing...\n");
-    //RSInit(g_ui32SysClock); // Initialize the comms link
 
     EncoderInit(g_ui32SysClock);
     ReflectInit();
@@ -92,21 +90,21 @@ int main(void) {
 //        }
 //        UARTprintf("Stop\n");
 //        UARTprintf("Flag: %d\n", cur_ctl_flag);
-        if (cur_ctl_flag == 1){
-            cur_ctl_flag = 0;
-            updateCurrent();
-            //CurrentControl(TARGET_CUR);
-//            UARTprintf("Flag\n");
-        }
-        if (vel_ctl_flag == 1){
-            vel_ctl_flag = 0;
-            updateAngle();
-            updateVelocity();
-            VelocityControl(TARGET_VELO);
-        }
-        if (pos_ctl_flag == 1){
-//            PositionControl(TARGET_ANGLE);
-            pos_ctl_flag = 0;
-        }
+//         if (cur_ctl_flag == 1){
+//             cur_ctl_flag = 0;
+//             updateCurrent();
+//             //CurrentControl(TARGET_CUR);
+// //            UARTprintf("Flag\n");
+//         }
+//         if (vel_ctl_flag == 1){
+//             vel_ctl_flag = 0;
+//             updateAngle();
+//             updateVelocity();
+//             VelocityControl(TARGET_VELO);
+//         }
+//         if (pos_ctl_flag == 1){
+// //            PositionControl(TARGET_ANGLE);
+//             pos_ctl_flag = 0;
+//         }
     }
 }

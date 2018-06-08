@@ -76,11 +76,11 @@ void Timer0IntHandler(void) {
  */
 void Timer1IntHandler(void){
     ROM_TimerIntClear(TIMER1_BASE, TIMER_TIMA_TIMEOUT);
-    UARTprintf("Target Angle: %d\n", (int)TARGET_ANGLE);
-    UARTprintf("Angle: %d\n", (int)getAngle());
-    UARTprintf("Target Velocity: %d\n", (int)TARGET_VELO);
-    UARTprintf("Velocity: %d\n", (int)getVelocity());
-    UARTprintf("Target Current: %d\n", (int)TARGET_CUR);
-    UARTprintf("Current: %d\n", (int)getCurrent());
-    UARTprintf("outputPWN: %d\n\n", (int)duty);
+    // UARTprintf("Target Angle: %d\n", (int)TARGET_ANGLE);
+    // UARTprintf("Angle: %d\n", (int)getAngle());
+    // UARTprintf("Target Velocity: %d\n", (int)TARGET_VELO);
+    // UARTprintf("Velocity: %d\n", (int)getVelocity());
+    // UARTprintf("Target Current: %d\n", (int)TARGET_CUR);
+    // UARTprintf("Current: %d\n", (int)getCurrent());
+    // UARTprintf("outputPWN: %d\n\n", (int)duty);
 }
