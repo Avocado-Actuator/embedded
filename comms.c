@@ -1,13 +1,27 @@
 #include "comms.h"
 
-uint8_t ADDRESS, BRAIN_ADDRESS;
+// ADDRESSES
+uint8_t ADDR, BRAIN_ADDR, BROADCAST_ADDR, ADDRSET_ADDR;
+// COUNTERS
+uint8_t message_counter, panic_counter;
+// INDICES
+uint8_t ADDR_IND, ADDRSET_IND, ID_IND, COM_IND, PAR_VAL_OFFSET;
+
+uint16_t NO_RESPONSE;
+
+
+uint8_t recv[10];
 
 // <<<<<<<<<<<<<<<>>>>>>>>>>>>>>
 // <<<<<<<<<<<< INITS >>>>>>>>>>
 // <<<<<<<<<<<<<<<>>>>>>>>>>>>>>
 
-void
-RSInit(uint32_t g_ui32SysClock){
+/**
+ * Initializes UART7 for communication between boards
+ *
+ * @param g_ui32SysClock - system clock to sync with
+ */
+void CommsInit(uint32_t g_ui32SysClock){
     // Copy over the clock created in main
     uartSysClock = g_ui32SysClock;
     // Enable the peripherals used
@@ -20,17 +34,50 @@ RSInit(uint32_t g_ui32SysClock){
     GPIOPinTypeGPIOOutput(GPIO_PORTC_BASE, GPIO_PIN_6);
     // enable tied pin as input to read output of enable pin
     GPIOPinTypeGPIOInput(GPIO_PORTC_BASE, GPIO_PIN_7);
-    // Write transceiver enable pin low for listening
-    UARTSetRead();
     // Configure the UART for 115,200, 8-N-1 operation.
-    ROM_UARTConfigSetExpClk(UART7_BASE, uartSysClock, 115200,
+    ROM_UARTConfigSetExpClk(UART7_BASE, g_ui32SysClock, 9600,
                             (UART_CONFIG_WLEN_8 | UART_CONFIG_STOP_ONE |
                              UART_CONFIG_PAR_NONE));
     // Enable the UART interrupt.
     ROM_IntEnable(INT_UART7);
     ROM_UARTIntEnable(UART7_BASE, UART_INT_RX | UART_INT_RT);
-    UARTprintf("comms initialized\n");
-    return;
+
+    recvIndex = 0;
+    MAX_PAR_VAL = 9;
+    STOP_BYTE = '!';
+
+    BRAIN_ADDR = 0x0;
+    ADDR = 0x1;
+    BROADCAST_ADDR = 0xFF;
+    ADDRSET_ADDR = 0xFE;
+
+    ADDR_IND        = 0;
+    ADDRSET_IND     = 2;
+    ID_IND          = 1;
+    COM_IND         = 2;
+    PAR_VAL_OFFSET  = 3;
+
+    CMD_MASK = 0b10000000; // 1 is SET and 0 is GET
+    PAR_MASK = 0b00000111; // gives just parameter selector bits
+
+    // matching flags should be inverse
+    ESTOP_HOLD      = 0b00000001;
+    ESTOP_KILL      = 0b11111110;
+
+    COMMAND_SUCCESS = 0b00000010;
+    COMMAND_FAILURE = 0b11111101;
+
+    OUTPUT_LIMITING = 0b00000100;
+    OUTPUT_FREE     = 0b11111011;
+
+    STATUS          = 0b00000000;
+
+    NO_RESPONSE = 65535;
+
+    message_counter = 0;
+    panic_counter = 0;
+
+    UARTprintf("Communication initialized\n");
 }
 
 /**
@@ -68,8 +115,6 @@ UARTSend(const uint8_t *pui8Buffer, uint32_t ui32Count)
 {
     // Add CRC byte to message
     uint8_t crc = crc8(0, pui8Buffer, ui32Count);
-    // Set transceiver rx/tx pin high to send
-    UARTSetWrite();
     bool space = true;
     // Loop while there are more characters to send.
     while(ui32Count--)
@@ -88,9 +133,9 @@ UARTSend(const uint8_t *pui8Buffer, uint32_t ui32Count)
     while (!space){
         space = ROM_UARTCharPutNonBlocking(UART7_BASE, crc);
     }*/
-    space = ROM_UARTCharPutNonBlocking(UART7_BASE, STOPBYTE);
+    space = ROM_UARTCharPutNonBlocking(UART7_BASE, STOP_BYTE);
     while (!space) {
-        space = ROM_UARTCharPutNonBlocking(UART7_BASE, STOPBYTE);
+        space = ROM_UARTCharPutNonBlocking(UART7_BASE, STOP_BYTE);
     }
 }
 
@@ -167,11 +212,11 @@ sendData(enum Parameter par) {
         default: UARTprintf("Asked for invalid parameter, aborting"); return;
     }
 
-    // MANUALLY SETTING BRAIN ADDRESS FOR NOW
-    BRAIN_ADDRESS = 0;
+    // MANUALLY SETTING BRAIN ADDR FOR NOW
+    BRAIN_ADDR = 0;
 
     char str[40];
-    sprintf(str, "%d %f", BRAIN_ADDRESS, value);
+    sprintf(str, "%d %f", BRAIN_ADDR, value);
     UARTprintf("\nMessage %s", str);
     UARTPrintFloat(value, true);
 
@@ -224,14 +269,14 @@ handleUART(char* buffer, uint32_t length, bool verbose, bool echo) {
         // initially tokenize on spaces
         char endByte = ' ';
 
-        // MANUALLY SETTING ADDRESS
-        ADDRESS = 1;
+        // MANUALLY SETTING ADDR
+        ADDR = 1;
 
         // get address
         char* iter = getToken(buffer, tok, ' ', 40);
         if(verbose) UARTprintf("Address: %s\n", tok);
 
-        if(((uint8_t) strtol(tok, NULL, 10)) != ADDRESS) {
+        if(((uint8_t) strtol(tok, NULL, 10)) != ADDR) {
             if(verbose) UARTprintf("Not my address, abort");
             return false;
         }
@@ -246,8 +291,8 @@ handleUART(char* buffer, uint32_t length, bool verbose, bool echo) {
         if(verbose) UARTprintf("Command: %s\n", tok);
 
         enum Command type = strcmp(tok, "get") == 0 ? Get : Set;
-        // if get then next token is last and ends at STOPBYTE
-        endByte = type == Get ? STOPBYTE : ' ';
+        // if get then next token is last and ends at STOP_BYTE
+        endByte = type == Get ? STOP_BYTE : ' ';
 
         // get parameter - { pos, vel, cur }
         iter = getToken(iter, tok, endByte, 40);
@@ -260,7 +305,7 @@ handleUART(char* buffer, uint32_t length, bool verbose, bool echo) {
 
         if(type == Set) {
             // if set command then get parameter value to set to
-            iter = getToken(iter, tok, STOPBYTE, 40);
+            iter = getToken(iter, tok, STOP_BYTE, 40);
             if(verbose) UARTprintf("Set val: %s\n", tok);
             setData(par, tok);
         } else {
@@ -315,7 +360,7 @@ UARTIntHandler(void)
     uint32_t ind = 0;
     char curr = ROM_UARTCharGet(UART7_BASE);
     // Loop while there are characters in the receive FIFO.
-    while(curr != STOPBYTE && ind < 40)
+    while(curr != STOP_BYTE && ind < 40)
     {
         recv[ind] = curr;
         ind++;
@@ -336,29 +381,12 @@ UARTIntHandler(void)
     handleUART(recv, ind, true, false);
 }
 
-bool
-UARTReady(){
-    return GPIOPinRead(GPIO_PORTC_BASE, GPIO_PIN_7) && !UARTBusy(UART7_BASE);
-}
-
-void
-UARTSetRead(){
-    GPIOPinWrite(GPIO_PORTC_BASE, GPIO_PIN_6, 0); // Set transceiver rx/tx pin low for read mode
-    return;
-}
-
-void
-UARTSetWrite(){
-    GPIOPinWrite(GPIO_PORTC_BASE, GPIO_PIN_6, GPIO_PIN_6); // Set transceiver rx/tx pin low for read mode
-    return;
-}
-
 void UARTSetAddress(uint8_t addr) {
-    ADDRESS = addr;
+    ADDR = addr;
 }
 
 uint8_t UARTGetAddress() {
-    return ADDRESS;
+    return ADDR;
 }
 
 void UARTPrintFloat(float val, bool verbose) {

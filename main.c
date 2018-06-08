@@ -42,27 +42,26 @@ void __error__(char *pcFilename, uint32_t ui32Line) { }
 #endif
 
 //*****************************************************************************
-//
-// Main function
-//
-//*****************************************************************************
-
-//*****************************************************************************
 // SUPER IMPORTANT, CCS IS JANK, NEED TO INCREASE STACK SIZE MANUALLY IN ORDER
 // TO USE SPRINTF, GO TO Build -> ARM Linker -> Basic Options IN PROJECT
 // PROPERTIES SET C SYSTEM STACK SIZE TO 65536
 //*****************************************************************************
-int
-main(void) {
+
+/**
+ * Main loop
+ *
+ * @return doesn't really matter
+ */
+int main(void) {
     // Set the clocking to run directly from the crystal at 120MHz.
-    g_ui32SysClock = MAP_SysCtlClockFreqSet((SYSCTL_XTAL_25MHZ |
-                                                 SYSCTL_OSC_MAIN |
-                                                 SYSCTL_USE_PLL |
-                                                 SYSCTL_CFG_VCO_480), 120000000);
+    g_ui32SysClock = MAP_SysCtlClockFreqSet(
+        (SYSCTL_XTAL_25MHZ | SYSCTL_OSC_MAIN | SYSCTL_USE_PLL | SYSCTL_CFG_VCO_480),
+        120000000);
 
     ROM_IntMasterEnable(); // Enable processor interrupts.
 
     ConsoleInit(); // Initialized UART0 for console output using UARTStdio
+    CommsInit(g_ui32SysClock);
     UARTprintf("\n\nTiva has turned on...\n");
     //UARTSend((uint8_t *)"\033[2JTiva has turned on\n\r", 24);
 
@@ -86,9 +85,6 @@ main(void) {
     while(1)
     {
         // Check the busy flag in the uart7 register. If not busy, set transceiver pin low
-//        if (UARTReady()){
-//            UARTSetRead();
-//        }
 //        UARTprintf("Start\n");
 //        int i;
 //        for (i =0; i < 100000; i++) {

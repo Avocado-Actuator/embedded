@@ -29,20 +29,43 @@
 #include "temp.h"
 
 void ConsoleInit(void);
+void CommsInit(uint32_t);
 
-void RSInit(uint32_t);
 void UARTIntHandler(void);
 void UARTSend(const uint8_t*, uint32_t);
-bool UARTReady(void);
-void UARTSetRead(void);
-void UARTSetWrite(void);
 void UARTSetAddress(uint8_t);
 uint8_t UARTGetAddress(void);
 
 void UARTPrintFloat(float, bool);
 
+void ConsoleIntHandler(void);
+void UARTIntHandler(void);
+void Timer0IntHandler(void);
+void UARTSend(const uint8_t*, uint32_t);
+
+uint8_t getAddress(void);
+void setAddress(uint8_t);
+
 uint32_t uartSysClock;
-static uint8_t STOPBYTE = '\0';
+
+uint8_t recvIndex,
+        ESTOP_HOLD,
+        ESTOP_KILL,
+        COMMAND_SUCCESS,
+        COMMAND_FAILURE,
+        OUTPUT_LIMITING,
+        OUTPUT_FREE,
+        STOP_BYTE,
+        MAX_PAR_VAL,
+        CMD_MASK,
+        PAR_MASK,
+        STATUS;
+
+// data structures
+union Flyte {
+  float f;
+  uint8_t bytes[sizeof(float)];
+};
 
 enum Command {
     Get = 0,
@@ -50,10 +73,14 @@ enum Command {
 };
 
 enum Parameter {
-    Pos = 0,
-    Vel = 1,
-    Cur = 2,
-    Tmp = 3
+    Adr     = 0,
+    Tmp     = 1,
+    Cur     = 2,
+    Vel     = 3,
+    Pos     = 4,
+    MaxCur  = 5,
+    EStop   = 6,
+    Status  = 7
 };
 
 #endif /* comms_H_ */
