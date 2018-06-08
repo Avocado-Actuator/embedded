@@ -41,7 +41,6 @@ uint8_t UARTGetAddress(void);
 
 void UARTPrintFloat(float, bool);
 
-void ConsoleIntHandler(void);
 void UARTIntHandler(void);
 void Timer0IntHandler(void);
 void UARTSend(const uint8_t*, uint32_t);
