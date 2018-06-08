@@ -20,7 +20,7 @@
 #include "utils/uartstdio.h"
 #include "driverlib/pwm.h"
 #include "driverlib/fpu.h"
-#include "driverlib/timer.h"
+
 #include "mag_encoder.h"
 #include "reflectance.h"
 
@@ -70,8 +70,6 @@ float KD_current;
 uint8_t time_flag_motor;
 uint8_t time_flag_console;
 
-void Timer0IntHandler(void);
-void TimerInit(uint32_t);
 void PWMInit(void);
 void MotorSPIInit(uint32_t ui32SysClock);
 void MotorSPISetting(void);
