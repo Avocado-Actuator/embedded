@@ -266,75 +266,86 @@ void setData(enum Parameter par, union Flyte * value, bool verbose) {
  *
  * @param par - parameter to send
  * @param id - message identifier
- * @param verbose - whether to print out
+ * @param verbose - whether or not to print out
  */
 void getData(enum Parameter par, uint8_t id, bool verbose) {
+    uint8_t NUM_BYTES_IN_FLOAT = 4;
+    uint8_t numBytes;
     union Flyte value;
     switch(par) {
-//        case Pos: {
-//            UARTprintf("Current pos: ");
-//            UARTPrintFloat(getAngle(), false);
-//            value.f = getAngle();
-//            setStatus(COMMAND_SUCCESS);
-//            break;
-//        }
-//        case Vel: {
-//            UARTprintf("Current vel: ");
-//            UARTPrintFloat(getVelocity(), false);
-//            value.f = getVelocity();
-//            setStatus(COMMAND_SUCCESS);
-//            break;
-//        }
-//
-//        case Cur: {
-//            UARTprintf("Current current: ");
-//            UARTPrintFloat(getCurrent(), false);
-//            value.f = getCurrent();
-//            setStatus(COMMAND_SUCCESS);
-//            break;
-//        }
-//
-        case Tmp: {
-//            UARTPrintFloat(getTemp(), false);
-//            value.f = getTemp();
-            value.f = 123.987;
+        case Pos: {
             if(verbose) {
-                UARTprintf("Current temperature: \n");
-                UARTPrintFloat(value.f, true);
+                UARTprintf("Current pos: ");
+                UARTPrintFloat(getAngle(), false);
             }
+            value.f = getAngle();
+            numBytes = NUM_BYTES_IN_FLOAT;
             setStatus(COMMAND_SUCCESS);
             break;
         }
 
-//        case MaxCur: {
-//            UARTprintf("Max Current Setting: ");
-//            UARTPrintFloat(getMaxCurrent(), false);
-//            value.f = getMaxCurrent();
-//            setStatus(COMMAND_SUCCESS);
-//            break;
-//        }
-//
-//        case EStop: {
-//            UARTprintf("Emergency Stop Behaviour: ");
-//            uint8_t temp = getEStop();
-//            UARTprintf((const char*) &temp, false);
-//            value.bytes[0] = temp;
-//            setStatus(COMMAND_SUCCESS);
-//            uint8_t bytes = value.bytes[0];
-//            UARTSend((const uint8_t*) &bytes, 1);
-//            return;
-//        }
-//
-//        case Status: {
-//            UARTprintf("Status Register: ");
-//            uint8_t temp = getStatus();
-//            UARTprintf((const char*) &temp, false);
-//            value.bytes[0] = temp;
-//            setStatus(COMMAND_SUCCESS);
-//            uint8_t bytes = value.bytes[0];
-//            UARTSend((const uint8_t*) &bytes, 1);
-//            return;
-//        }
+        case Vel: {
+            if(verbose) {
+                UARTprintf("Current vel: ");
+                UARTPrintFloat(getVelocity(), false);
+            }
+            value.f = getVelocity();
+            numBytes = NUM_BYTES_IN_FLOAT;
+            setStatus(COMMAND_SUCCESS);
+            break;
+        }
+
+        case Cur: {
+            if(verbose) {
+                UARTprintf("Current current: ");
+                UARTPrintFloat(getCurrent(), false);
+            }
+            value.f = getCurrent();
+            numBytes = NUM_BYTES_IN_FLOAT;
+            setStatus(COMMAND_SUCCESS);
+            break;
+        }
+
+        case Tmp: {
+            if(verbose) {
+                UARTprintf("Current temperature: ");
+                UARTPrintFloat(getTemp(), false);
+            }
+            value.f = getTemp();
+            numBytes = NUM_BYTES_IN_FLOAT;
+            setStatus(COMMAND_SUCCESS);
+            break;
+        }
+
+        case MaxCur: {
+            if(verbose) {
+                UARTprintf("Max Current Setting: ");
+                UARTPrintFloat(getMaxCurrent(), false);
+            }
+            value.f = getMaxCurrent();
+            numBytes = NUM_BYTES_IN_FLOAT;
+            setStatus(COMMAND_SUCCESS);
+            break;
+        }
+
+        // <<<< SINGLE BYTE VALUES >>>>
+        case EStop: {
+            uint8_t temp = getEStop();
+            if(verbose) UARTprintf("EStop behavior: %x\n", temp);
+            value.bytes[0] = temp;
+            numBytes = 1;
+            setStatus(COMMAND_SUCCESS);
+            break;
+        }
+
+        case Status: {
+            uint8_t temp = getStatus();
+            if(verbose) UARTprintf("Status: %x\n", temp);
+            value.bytes[0] = temp;
+            numBytes = 1;
+            setStatus(COMMAND_SUCCESS);
+            break;
+        }
 
         default: {
             UARTprintf("Asked for invalid parameter, aborting\n");
@@ -342,6 +353,7 @@ void getData(enum Parameter par, uint8_t id, bool verbose) {
              break;
         }
     }
+
     uint8_t msg[5];
     if (!(getStatus() & ~COMMAND_FAILURE)){ // true if command failed
 //        UARTprintf("Get failed :(\n");
@@ -352,10 +364,11 @@ void getData(enum Parameter par, uint8_t id, bool verbose) {
 //        UARTprintf("Get succeeded! :)\n");
         msg[0] = id;
         int i;
-        for(i = 0; i < 4; ++i)
+        for(i = 0; i < numBytes; ++i)
             msg[i+1] = value.bytes[i];
 
-        UARTSend(msg, 5);
+        // 1 for id
+        UARTSend(msg, numBytes + 1);
     }
 }
 
