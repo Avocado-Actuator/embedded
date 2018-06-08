@@ -1,12 +1,12 @@
 /*
- * rs485.h
+ * comms.h
  *
  *  Created on: Apr 21, 2018
  *      Author: Ryan
  */
 
-#ifndef RS485_H_
-#define RS485_H_
+#ifndef comms_H_
+#define comms_H_
 
 #include <stdbool.h>
 #include <stdint.h>
@@ -54,4 +54,4 @@ enum Parameter {
     Tmp = 3
 };
 
-#endif /* RS485_H_ */
+#endif /* comms_H_ */

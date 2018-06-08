@@ -1,11 +1,11 @@
 /*
- * rs485.c
+ * comms.c
  *
  *  Created on: Apr 21, 2018
  *      Author: Ryan
  */
 
-#include "rs485.h"
+#include "comms.h"
 
 uint8_t ADDRESS,
         BRAIN_ADDRESS;
@@ -33,7 +33,7 @@ RSInit(uint32_t g_ui32SysClock){
     // Enable the UART interrupt.
     ROM_IntEnable(INT_UART7);
     ROM_UARTIntEnable(UART7_BASE, UART_INT_RX | UART_INT_RT);
-    UARTprintf("RS485 initialized\n");
+    UARTprintf("comms initialized\n");
     return;
 }
 

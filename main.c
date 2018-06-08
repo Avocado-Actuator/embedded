@@ -18,7 +18,7 @@
 #include "driverlib/uart.h"
 #include "isense.h" // NEW INCLUDE!!!
 #include "utils/uartstdio.h" // NEW INCLUDE!!!
-#include "rs485.h" // NEW INCLUDE!!!
+#include "comms.h" // NEW INCLUDE!!!
 #include "reflectance.h" // NEW INCLUDE!!!
 #include "mag_encoder.h" // NEW INCLUDE!!!
 #include "motor.h"
@@ -213,7 +213,7 @@ main(void) {
     //UARTSend((uint8_t *)"\033[2JTiva has turned on\n\r", 24);
 
     UARTprintf("Initializing...\n");
-    //RSInit(g_ui32SysClock); // Initialize the RS485 link
+    //RSInit(g_ui32SysClock); // Initialize the comms link
 
     EncoderInit(g_ui32SysClock);
     ReflectInit();
