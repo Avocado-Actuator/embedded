@@ -5,7 +5,18 @@
 #include "motor.h"
 #include "isense.h"
 
+uint8_t STATUS;
 
+// LSB of STATUS byte is estop behaviour: 1 is hold position until safety threshold reached, 0 is kill motor power
+// next bit up is success or failure of most recent command. 1 success, 0 failure
+// next up is whether output performance is being limited (1) or free (0)
+
+void setEStop(uint8_t action) { STATUS &= 0b11111110; STATUS |= action; }
+uint8_t getEStop() { return STATUS & 0b00000001; }
+
+uint8_t getStatus() { return STATUS; }
+void setStatus(uint8_t newflag) { STATUS |= newflag; }
+void clearStatus(uint8_t newflag) { STATUS &= newflag; }
 
 uint32_t pui32DataTx[5];
 uint32_t pui32DataRx[5];
@@ -38,7 +49,6 @@ void MotorInit(uint32_t g_ui32SysClock)
 //    KP_velocity=0.005;
 //    KI_velocity=0.05;
 //    KD_velocity=0.0;
-
 
     KP_current=0.0001;
     KI_current=0.001;

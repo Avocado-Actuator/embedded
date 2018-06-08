@@ -64,6 +64,16 @@ uint8_t recvIndex,
         PAR_MASK,
         STATUS;
 
+// getters/setters in motor
+//status flags
+uint8_t ESTOP_HOLD,
+        ESTOP_KILL,
+        COMMAND_SUCCESS,
+        COMMAND_FAILURE,
+        OUTPUT_LIMITING,
+        OUTPUT_FREE;
+
+
 // data structures
 union Flyte {
   float f;

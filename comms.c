@@ -109,15 +109,6 @@ void ConsoleInit(void) {
 // <<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>
 
 /**
- * Sets new status
- *
- * @param newflag - new status flag
- */
-void setStatus(uint8_t newflag) { STATUS |= newflag; }
-void clearStatus(uint8_t newflag) { STATUS &= newflag; }
-uint8_t getStatus() { return STATUS; }
-
-/**
  * Returns string corresponding to given enum value.
  *
  * @param par - enum value whose name to return
@@ -130,7 +121,6 @@ const char* getCommandName(enum Command cmd) {
         default: return "NOP";
     }
 }
-
 
 /**
  * Returns string corresponding to given enum value.
@@ -196,32 +186,35 @@ void setData(enum Parameter par, union Flyte * value, bool verbose) {
     if(verbose) UARTprintf("Target value: %d\n", value->f);
     switch(par) {
         case Pos: {
-//            setTargetAngle(value->f);
+            setTargetAngle(value->f);
             if(verbose) {
                 UARTprintf("New target angle: ");
-//                UARTPrintFloat(getTargetAngle(), false);
+                UARTPrintFloat(getTargetAngle(), false);
             }
             setStatus(COMMAND_SUCCESS);
             break;
         }
+
         case Vel: {
-//            setTargetVelocity(value->f);
+            setTargetVelocity(value->f);
             if(verbose) {
                 UARTprintf("New target velocity: ");
-//                UARTPrintFloat(getTargetVelocity(), false);
+                UARTPrintFloat(getTargetVelocity(), false);
             }
             setStatus(COMMAND_SUCCESS);
             break;
         }
+
         case Cur: {
-//            setTargetCurrent(value->f);
+            setTargetCurrent(value->f);
             if(verbose) {
                 UARTprintf("New target current: ");
-//                UARTPrintFloat(getTargetCurrent(), false);
+                UARTPrintFloat(getTargetCurrent(), false);
             }
             setStatus(COMMAND_SUCCESS);
             break;
         }
+
         case Adr: {
             setAddress(value->bytes[0]);
             if(verbose) {
@@ -232,30 +225,34 @@ void setData(enum Parameter par, union Flyte * value, bool verbose) {
             setStatus(COMMAND_SUCCESS);
             break;
         }
+
         case MaxCur: {
-//            setMaxCurrent(value->f);
+            setMaxCurrent(value->f);
             if(verbose) {
                 UARTprintf("New max current: ");
-//                UARTPrintFloat(getMaxCurrent(), false);
+                UARTPrintFloat(getMaxCurrent(), false);
             }
             setStatus(COMMAND_SUCCESS);
             break;
         }
+
         case EStop: {
-//            setEStop(value->bytes[0]);
+            setEStop(value->bytes[0]);
             if(verbose) {
                 UARTprintf("New estop behavior: %x\n", value->bytes[0]);
-//                uint8_t temp = getEStop();
-//                UARTprintf((const char*) &temp, false);
+                uint8_t temp = getEStop();
+                UARTprintf((const char*) &temp, false);
             }
             setStatus(COMMAND_SUCCESS);
             break;
         }
+
         case Tmp: {
             if(verbose) UARTprintf("Invalid set, user tried to set temperature\n");
             clearStatus(COMMAND_FAILURE);
             break;
         }
+
         default: {
             if(verbose) UARTprintf("Tried to set invaliad parameter, aborting\n");
             clearStatus(COMMAND_FAILURE);
@@ -477,9 +474,10 @@ void UARTSend(const uint8_t *buffer, uint32_t length) {
     msg[len++] = crc;
     msg[len++] = STOP_BYTE;
 
-    // for(i = 0; i < len; i++) {
-    //     UARTprintf("Byte %d: %x\n", i, msg[i]);
-    // }
+    UARTprintf("Sending:\n");
+    for(i = 0; i < len; i++) {
+        UARTprintf("Byte %d: %x\n", i, msg[i]);
+    }
 
     bool space;
     for (i = 0; i < len; i++) {
@@ -534,7 +532,7 @@ void UARTIntHandler(void) {
         recvIndex = 0;
 
         if(len >= 3) {
-            uint16_t id = handleUART(recv, len, /*verbose=*/false);
+            uint16_t id = handleUART(recv, len, /*verbose=*/true);
             if(id == NO_RESPONSE) {}
             else if(id < 256) {
                 uint8_t msg[2];

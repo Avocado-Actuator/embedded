@@ -49,13 +49,9 @@ void Timer0IntHandler(void) {
     ROM_TimerIntClear(TIMER0_BASE, TIMER_TIMA_TIMEOUT);
 
     TIMER_0_TIME++;
-    if ((TIMER_0_TIME % cur_int) == 0){
-        cur_ctl_flag = 1;
-    }
-    if (TIMER_0_TIME%vel_int == 0){
-        vel_ctl_flag = 1;
-    }
-    if (TIMER_0_TIME%pos_int == 0){
+    if (TIMER_0_TIME % cur_int == 0) cur_ctl_flag = 1;
+    if (TIMER_0_TIME % vel_int == 0) vel_ctl_flag = 1;
+    if (TIMER_0_TIME % pos_int == 0) {
         pos_ctl_flag = 1;
         TIMER_0_TIME = 0;
     }
@@ -64,11 +60,11 @@ void Timer0IntHandler(void) {
     ++HEARTBEAT_TIME;
     // expect heartbeat every 500 ms
     // user should send multiple in that time in case of corruption
-    if(HEARTBEAT_TIME % 500 == 0) {
-        UARTprintf(
-            "\n\n\n\n\n\n\n\n%d PANIC ESTOP, NO HEARTBEAT\n\n\n\n\n\n\n\n",
-            heartbeat_panic_counter++);
-    }
+    // if(HEARTBEAT_TIME % 500 == 0) {
+    //     UARTprintf(
+    //         "\n\n\n\n\n\n\n\n%d PANIC ESTOP, NO HEARTBEAT\n\n\n\n\n\n\n\n",
+    //         heartbeat_panic_counter++);
+    // }
 }
 
 /**
