@@ -53,6 +53,13 @@ float   CUR,
         lastCurError,
         prevCurError;
 
+// <<<<< STATUS >>>>>
+uint8_t getEStop(void);
+void setEStop(uint8_t);
+uint8_t getStatus(void);
+void setStatus(uint8_t);
+void clearStatus(uint8_t);
+
 //Velocity PID parameters
 float KP_velocity;
 float KI_velocity;

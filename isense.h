@@ -39,5 +39,7 @@ void setCurrent(float);
 float getTargetCurrent(void);
 void setTargetCurrent(float);
 void updateCurrent(void);
+float getMaxCurrent(void);
+void setMaxCurrent(float);
 
 #endif /* ISENSE_H_ */

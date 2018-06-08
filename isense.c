@@ -8,11 +8,9 @@
 #include "isense.h"
 #include "motor.h"
 
-float Current, TargetCurrent, PrevCurrent;
+float Current, TargetCurrent, PrevCurrent, MaxCurrent;
 
 uint32_t offset[3]={0,0,0};
-
-//uint32_t offset[3]={0,0,0};
 
 void CurrentSenseInit(void) {
     // Display the setup on the console.
@@ -62,7 +60,8 @@ float getCurrent() { return Current; }
 void setCurrent(float newCurrent) { Current = newCurrent; }
 float getTargetCurrent() { return TargetCurrent; }
 void setTargetCurrent(float newCurrent) { TargetCurrent = newCurrent; }
-
+float getMaxCurrent() { return MaxCurrent; }
+void setMaxCurrent(float newMaxCurrent) { MaxCurrent = newMaxCurrent; }
 
 void updateCurrent() {
     float volt,sum=0;
@@ -113,11 +112,11 @@ void updateCurrent() {
     }
 
 //	UARTprintf("Current :%d\n",(int)(sum*1000));
-	
+
     PrevCurrent = getCurrent();
     setCurrent(1000*sum/CURRENT_SAMPLES);//unit mA
     if(getCurrent()>MAX_CURRENT){
-        brake;
+        brake();
     }
     return;
 }
