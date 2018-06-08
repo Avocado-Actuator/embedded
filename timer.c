@@ -9,7 +9,7 @@
 #include "timer.h"
 #include "motor.h"
 
-uint32_t TIMER_0_TIME, HEARTBEAT_TIME, heartbeat_panic_counter;
+uint32_t TIMER_0_TIME, heartbeat_panic_counter;
 
 void TimerInit(uint32_t g_ui32SysClock)
 {
