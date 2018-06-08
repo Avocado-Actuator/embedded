@@ -41,47 +41,6 @@ void __error__(char *pcFilename, uint32_t ui32Line) { }
 #endif
 
 //*****************************************************************************
-int flag=0;
-int TARGET=0;
-void
-UARTIntHandler0(void)
-{
-    uint32_t ui32Status;
-
-    //
-    // Get the interrrupt status.
-    //
-    ui32Status = ROM_UARTIntStatus(UART0_BASE, true);
-
-    //
-    // Clear the asserted interrupts.
-    //
-    ROM_UARTIntClear(UART0_BASE, ui32Status);
-
-    //
-    // Loop while there are characters in the receive FIFO.
-    //
-    while(ROM_UARTCharsAvail(UART0_BASE))
-    {
-        //
-        // Read the next character from the UART and write it back to the UART.
-        //
-        char ch=ROM_UARTCharGetNonBlocking(UART0_BASE);
-        ROM_UARTCharPutNonBlocking(UART0_BASE,ch);
-        TARGET_VELO=(int)(ch-'0')*20;
-//        if(flag==1){
-//            flag=0;
-//        }
-//        else{
-//            flag=1;
-//        }
-        //zeroPosition();
-
-    }
-}
-
-
-//*****************************************************************************
 // Handler of timer interrupts, set a clock for program
 //
 // input: None
