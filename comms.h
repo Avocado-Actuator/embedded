@@ -13,6 +13,7 @@
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
+
 #include "inc/hw_memmap.h"
 #include "driverlib/adc.h"
 #include "driverlib/gpio.h"
@@ -23,10 +24,12 @@
 #include "inc/hw_ints.h"
 #include "driverlib/rom.h"
 #include "driverlib/rom_map.h"
+
 #include "crc.h"
 #include "motor.h"
 #include "isense.h"
 #include "temp.h"
+#include "timer.h"
 
 void ConsoleInit(void);
 void CommsInit(uint32_t);

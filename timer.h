@@ -9,4 +9,6 @@ void TimerInit(uint32_t);
 void Timer0IntHandler(void);
 void Timer1IntHandler(void);
 
+uint32_t HEARTBEAT_TIME;
+
 #endif /* timer_H_ */

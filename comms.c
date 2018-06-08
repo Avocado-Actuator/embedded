@@ -9,7 +9,6 @@ uint8_t ADDR_IND, ADDRSET_IND, ID_IND, COM_IND, PAR_VAL_OFFSET;
 
 uint16_t NO_RESPONSE;
 
-
 uint8_t recv[10];
 
 // <<<<<<<<<<<<<<<>>>>>>>>>>>>>>
@@ -375,10 +374,9 @@ void getData(enum Parameter par, uint8_t id, bool verbose) {
  * @param buffer - pointer to the message
  * @param length - the length of the message
  * @param verbose - if true print to console for debugging
- * @param echo - if true simply echo the message, can also be helpful for debugging
  * @return if response needed, valid id 0-255, else 65535 (max size of uint16_t)
  */
-uint16_t handleUART(uint8_t* buffer, uint32_t length, bool verbose, bool echo) {
+uint16_t handleUART(uint8_t* buffer, uint32_t length, bool verbose) {
     // get address
     uint8_t tempaddr = buffer[ADDR_IND];
 
@@ -493,7 +491,6 @@ void UARTSend(const uint8_t *buffer, uint32_t length) {
             space = ROM_UARTCharPutNonBlocking(UART7_BASE, msg[i]);
     }
 }
-
 // <<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>
 // <<<<<<<<<<<< HANDLERS >>>>>>>>>>
 // <<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>
@@ -511,50 +508,54 @@ void ConsoleIntHandler(void) {
     while(ROM_UARTCharsAvail(UART0_BASE)) {
         // Read the next character from the UART and write it back to the UART.
         ROM_UARTCharPutNonBlocking(UART7_BASE, ROM_UARTCharGetNonBlocking(UART0_BASE));
-        // Blink the LED to show a character transfer is occuring.
-        GPIOPinWrite(GPIO_PORTN_BASE, GPIO_PIN_0, GPIO_PIN_0);
-        // Delay for 1 millisecond.  Each SysCtlDelay is about 3 clocks.
-        SysCtlDelay(uartSysClock / (1000 * 3));
-        // Turn off the LED
-        GPIOPinWrite(GPIO_PORTN_BASE, GPIO_PIN_0, 0);
     }
 }
 
-//*****************************************************************************
-//
-// The UART interrupt handler.
-//
-//*****************************************************************************
-void
-UARTIntHandler(void)
-{
-    uint32_t ui32Status;
-    // Get the interrupt status.
-    ui32Status = ROM_UARTIntStatus(UART7_BASE, true);
+/**
+ * UART interrupt handler
+ */
+void UARTIntHandler(void) {
+    // Get the interrrupt status.
+    uint32_t ui32Status = ROM_UARTIntStatus(UART7_BASE, true);
     // Clear the asserted interrupts.
     ROM_UARTIntClear(UART7_BASE, ui32Status);
-    // Initialize recv buffer
-    char recv[40] = "";
-    uint32_t ind = 0;
-    char curr = ROM_UARTCharGet(UART7_BASE);
+
+    ROM_UARTIntDisable(UART7_BASE, UART_INT_RX | UART_INT_RT);
+
     // Loop while there are characters in the receive FIFO.
-    while(curr != STOP_BYTE && ind < 40)
-    {
-        recv[ind] = curr;
-        ind++;
-        curr = ROM_UARTCharGet(UART7_BASE);
+    // Read the next character from the UART and write it back to the UART.
+    uint8_t character = ROM_UARTCharGetNonBlocking(UART7_BASE);
+//    UARTprintf("Byte: %x\n", character);
+    recv[recvIndex++] = character;
+
+    if(character == STOP_BYTE) {
+        HEARTBEAT_TIME = 0;
+        uint8_t len = recvIndex;
+        recvIndex = 0;
+
+        if(len >= 3) {
+            uint16_t id = handleUART(recv, len, /*verbose=*/true);
+            if(id == NO_RESPONSE) {}
+            else if(id < 256) {
+                uint8_t msg[2];
+                msg[0] = (uint8_t) id;
+                msg[1] = getStatus();
+                UARTSend(msg, 2);
+            } else {
+                // this should never happen
+                UARTprintf("\n\n\n\n\n\n\n\nTHIS SHOULDN'T HAVE HAPPENED\n\n\n\n\n\n\n\n");
+            }
+        } else {
+            UARTprintf("\n\n\n\n\n\n\n\nRECEIVED MESSAGE WITH LENGTH < 3\n\n\n\n\n\n\n\n");
+        }
+
+        if(message_counter == 100) {
+            UARTprintf("\nPanic ratio: %d/100\n", panic_counter);
+            message_counter = 0;
+            panic_counter = 0;
+        }
+
+        ++message_counter;
     }
-
-    // keep stop byte for tokenizing
-    recv[ind] = curr;
-    ind++;
-
-    /*uint8_t crcin = recv[ind-1];
-    if (crc8(0, (uint8_t *)recv, ind - 1) != crcin){
-        // ********** ERROR ***********
-        // Handle corrupted message
-    }*/
-
-    // handle given message
-    handleUART(recv, ind, true, false);
+    ROM_UARTIntEnable(UART7_BASE, UART_INT_RX | UART_INT_RT);
 }
