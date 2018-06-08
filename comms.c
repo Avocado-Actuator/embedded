@@ -271,6 +271,32 @@ handleUART(char* buffer, uint32_t length, bool verbose, bool echo) {
     return true;
 }
 
+// <<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>
+// <<<<<<<<<<<< HANDLERS >>>>>>>>>>
+// <<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>
+
+/**
+ * Console interrupt handler
+ */
+void ConsoleIntHandler(void) {
+    // Get the interrupt status.
+    uint32_t ui32Status = ROM_UARTIntStatus(UART0_BASE, true);
+    // Clear the asserted interrupts.
+    ROM_UARTIntClear(UART0_BASE, ui32Status);
+
+    // Loop while there are characters in the receive FIFO.
+    while(ROM_UARTCharsAvail(UART0_BASE)) {
+        // Read the next character from the UART and write it back to the UART.
+        ROM_UARTCharPutNonBlocking(UART7_BASE, ROM_UARTCharGetNonBlocking(UART0_BASE));
+        // Blink the LED to show a character transfer is occuring.
+        GPIOPinWrite(GPIO_PORTN_BASE, GPIO_PIN_0, GPIO_PIN_0);
+        // Delay for 1 millisecond.  Each SysCtlDelay is about 3 clocks.
+        SysCtlDelay(uartSysClock / (1000 * 3));
+        // Turn off the LED
+        GPIOPinWrite(GPIO_PORTN_BASE, GPIO_PIN_0, 0);
+    }
+}
+
 //*****************************************************************************
 //
 // The UART interrupt handler.
