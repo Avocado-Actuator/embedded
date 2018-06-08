@@ -167,7 +167,7 @@ void UARTPrintFloat(float val, bool verbose) {
     sprintf(str, "%f", val);
     verbose
         ? UARTprintf("val, length: %s, %d\n", str, strlen(str))
-        : UARTprintf("%s\n", str);
+        : UARTprintf("%s", str);
 }
 
 // <<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>
@@ -183,10 +183,11 @@ void UARTPrintFloat(float val, bool verbose) {
  */
 void setData(enum Parameter par, union Flyte * value, bool verbose) {
     // if(verbose) UARTprintf("\nin setData\n");
-    if(verbose) {
-        UARTprintf("New val: ");
-        UARTPrintFloat(value->f, false);
-    }
+    // if(verbose) {
+    //     UARTprintf("New val: ");
+    //     UARTPrintFloat(value->f, false);
+    // }
+
     switch(par) {
         case Pos: {
             setTargetAngle(value->f);
@@ -220,11 +221,7 @@ void setData(enum Parameter par, union Flyte * value, bool verbose) {
 
         case Adr: {
             setAddress(value->bytes[0]);
-            if(verbose) {
-                UARTprintf("New address: ");
-                uint8_t temp = getAddress();
-                UARTprintf((const char*) &temp, false);
-            }
+            if(verbose) UARTprintf("New address: %d", getAddress());
             setStatus(COMMAND_SUCCESS);
             break;
         }
@@ -241,11 +238,7 @@ void setData(enum Parameter par, union Flyte * value, bool verbose) {
 
         case EStop: {
             setEStop(value->bytes[0]);
-            if(verbose) {
-                UARTprintf("New estop behavior: %x\n", value->bytes[0]);
-                uint8_t temp = getEStop();
-                UARTprintf((const char*) &temp, false);
-            }
+            if(verbose) UARTprintf("New estop behavior: %x", value->bytes[0]);
             setStatus(COMMAND_SUCCESS);
             break;
         }
@@ -262,6 +255,7 @@ void setData(enum Parameter par, union Flyte * value, bool verbose) {
             break;
         }
     }
+    if(verbose) UARTprintf("\n");
 }
 
 /**
@@ -334,7 +328,7 @@ void getData(enum Parameter par, uint8_t id, bool verbose) {
         // <<<< SINGLE BYTE VALUES >>>>
         case EStop: {
             uint8_t temp = getEStop();
-            if(verbose) UARTprintf("EStop behavior: %x\n", temp);
+            if(verbose) UARTprintf("EStop behavior: %x", temp);
             value.bytes[0] = temp;
             numBytes = 1;
             setStatus(COMMAND_SUCCESS);
@@ -343,7 +337,7 @@ void getData(enum Parameter par, uint8_t id, bool verbose) {
 
         case Status: {
             uint8_t temp = getStatus();
-            if(verbose) UARTprintf("Status: %x\n", temp);
+            if(verbose) UARTprintf("Status: %x", temp);
             value.bytes[0] = temp;
             numBytes = 1;
             setStatus(COMMAND_SUCCESS);
@@ -351,11 +345,12 @@ void getData(enum Parameter par, uint8_t id, bool verbose) {
         }
 
         default: {
-            UARTprintf("Asked for invalid parameter, aborting\n");
+            UARTprintf("Asked for invalid parameter, aborting");
              clearStatus(COMMAND_FAILURE);
              break;
         }
     }
+    if(verbose) UARTprintf("\n");
 
     uint8_t msg[5];
     if (!(getStatus() & ~COMMAND_FAILURE)){ // true if command failed
@@ -403,9 +398,6 @@ uint16_t handleUART(uint8_t* buffer, uint32_t length, bool verbose) {
         UARTprintf("\n");
     }
 
-    if(verbose) UARTprintf("Addr - %x", tempaddr);
-
-
     uint8_t crcin = recv[length-2];
     if (crc8(0, (uint8_t *)recv, length-2) != crcin){
         // ********** ERROR ***********
@@ -414,6 +406,8 @@ uint16_t handleUART(uint8_t* buffer, uint32_t length, bool verbose) {
         ++panic_counter;
         return NO_RESPONSE;
     }
+
+    if(verbose) UARTprintf("Addr - %x", tempaddr);
 
     uint8_t id = recv[ID_IND];
     if(verbose) UARTprintf(", ID - %x", id);
@@ -455,10 +449,12 @@ uint16_t handleUART(uint8_t* buffer, uint32_t length, bool verbose) {
         for (i = 0; i < length - 4; i++)
             setval.bytes[i] = buffer[i+PAR_VAL_OFFSET];
 
-        if(verbose) {
-            UARTprintf("Setting value\n");
-            UARTPrintFloat(setval.f, true);
-        }
+        // if(verbose) {
+        //     UARTprintf("Setting value - ");
+        //     UARTPrintFloat(setval.f, false);
+        //     UARTprintf("\n");
+        // }
+
         setData(par, &setval, verbose);
         return (uint16_t) id;
     } else {
@@ -554,10 +550,10 @@ void UARTIntHandler(void) {
                 UARTSend(msg, 2);
             } else {
                 // this should never happen
-                UARTprintf("\n\n\n\n\n\n\n\nTHIS SHOULDN'T HAVE HAPPENED\n\n\n\n\n\n\n\n");
+                UARTprintf("\n\n\n\n\nTHIS SHOULDN'T HAVE HAPPENED\n\n\n\n\n");
             }
         } else {
-            UARTprintf("\n\n\n\n\n\n\n\nRECEIVED MESSAGE WITH LENGTH < 3\n\n\n\n\n\n\n\n");
+            UARTprintf("\n\n\n\n\nRECEIVED MESSAGE WITH LENGTH < 3\n\n\n\n\n");
         }
 
         if(message_counter == 100) {
