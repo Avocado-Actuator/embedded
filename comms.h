@@ -28,6 +28,8 @@
 #include "isense.h"
 #include "temp.h"
 
+void ConsoleInit(void);
+
 void RSInit(uint32_t);
 void UARTIntHandler(void);
 void UARTSend(const uint8_t*, uint32_t);
