@@ -80,28 +80,6 @@ void MotorInit(uint32_t g_ui32SysClock)
 
 
 
-void TimerInit(uint32_t g_ui32SysClock)
-{
-    /************** Initialization for timer (1ms and 1s)  *****************/
-    //Enable the timer peripherals
-    ROM_SysCtlPeripheralEnable(SYSCTL_PERIPH_TIMER0);
-    ROM_SysCtlPeripheralEnable(SYSCTL_PERIPH_TIMER1);
-    // Configure 32-bit periodic timers.
-    //1ms timer
-    ROM_TimerConfigure(TIMER0_BASE, TIMER_CFG_PERIODIC);
-    ROM_TimerLoadSet(TIMER0_BASE, TIMER_A, g_ui32SysClock/1000);//trigger every 1ms
-    //1s timer
-    ROM_TimerConfigure(TIMER1_BASE, TIMER_CFG_PERIODIC);
-    ROM_TimerLoadSet(TIMER1_BASE, TIMER_A, g_ui32SysClock);//trigger every 1s
-    // Setup the interrupts for the timer timeouts.
-    ROM_IntEnable(INT_TIMER0A);
-    ROM_IntEnable(INT_TIMER1A);
-    ROM_TimerIntEnable(TIMER0_BASE, TIMER_TIMA_TIMEOUT);
-    ROM_TimerIntEnable(TIMER1_BASE, TIMER_TIMA_TIMEOUT);
-    // Enable the timers.
-    ROM_TimerEnable(TIMER0_BASE, TIMER_A);
-    ROM_TimerEnable(TIMER1_BASE, TIMER_A);
-}
 
 void PWMInit(){
     /***********PWM control***********/
