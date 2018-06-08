@@ -9,7 +9,8 @@
 
 uint32_t pui32DataTx[5];
 uint32_t pui32DataRx[5];
-
+extern uint32_t g_ui32SysClock;
+volatile int holdPos=1;
 
 //*****************************************************************************
 // Initializer of motor driver, including timer, PWM, SPI and GPIO
@@ -26,19 +27,26 @@ void MotorInit(uint32_t g_ui32SysClock)
     outputCurrent=0;
     direction=1;
 
-    KP_velocity=0.001;
-    KI_velocity=0.02;
-    KD_velocity=0.00;
+    pos_int=80;
+    vel_int=40;
+    cur_int=20;
 
-    KP_angle=1.5;
-    KI_angle=0.01;
-    KD_angle=5;
+    KP_angle=0.1;
+    KI_angle=0.001;
+    KD_angle=0.001;
 
-    KP_current=0;
-    KI_current=0.005;
+//    KP_velocity=0.005;
+//    KI_velocity=0.05;
+//    KD_velocity=0.0;
+
+
+    KP_current=0.0001;
+    KI_current=0.001;
     KD_current=0;
 
+    TARGET_ANGLE=0;
     TARGET_VELO=0;
+    TARGET_CUR=0;
     UARTprintf("initializing motor driver...\n");
 
     PWMInit();
@@ -63,7 +71,7 @@ void MotorInit(uint32_t g_ui32SysClock)
     MotorSPISetting();
 
     HallSensorInit();
-    TimerInit(g_ui32SysClock);
+
     //zeroPosition();
     UARTprintf("motor driver initialized!\n");
 
@@ -81,7 +89,7 @@ void TimerInit(uint32_t g_ui32SysClock)
     // Configure 32-bit periodic timers.
     //1ms timer
     ROM_TimerConfigure(TIMER0_BASE, TIMER_CFG_PERIODIC);
-    ROM_TimerLoadSet(TIMER0_BASE, TIMER_A, g_ui32SysClock/100);//trigger every 1ms
+    ROM_TimerLoadSet(TIMER0_BASE, TIMER_A, g_ui32SysClock/1000);//trigger every 1ms
     //1s timer
     ROM_TimerConfigure(TIMER1_BASE, TIMER_CFG_PERIODIC);
     ROM_TimerLoadSet(TIMER1_BASE, TIMER_A, g_ui32SysClock);//trigger every 1s
@@ -241,7 +249,7 @@ void updateVelocity() {
     diff=diff>180?diff-360:diff;
 
     prevVelo=getVelocity();
-    float newVelo=diff*100/360*60;// assumes measuring velocity every 1 mili seconds
+    float newVelo=diff*25/360*60;// assumes measuring velocity every 1 mili seconds
 
     if(newVelo-prevVelo>50){
         setVelocity(prevVelo+50);
@@ -267,7 +275,7 @@ void PWMoutput(float dut){
         dut=-dut;
         //UARTprintf("Negative\n");
         //enableDriver();
-        direction=0;
+        direction=-1;
         GPIOPinWrite(GPIO_PORTP_BASE, GPIO_PIN_1,0);//clockwise from the bottom
         PWMPulseWidthSet(PWM0_BASE, PWM_GEN_2, (int)9600*dut/100);
     }
@@ -294,12 +302,15 @@ uint32_t getPWM(){
 // Motor brake, set pwm to 0 and set nBrake to low.
 //*****************************************************************************
 void brake(){
-    PWMoutput(0);
-	//UARTprintf("\nbraking");
-    //untested
-    //GPIOPinWrite(GPIO_PORTP_BASE, GPIO_PIN_1,0);
-    //PWMoutput(5000,0);
-    //GPIOPinWrite(GPIO_PORTP_BASE, GPIO_PIN_1,GPIO_PIN_1);
+    //UARTprintf("Emergency braking!\n");
+    if(holdPos==1){
+        updateAngle();
+        TARGET_ANGLE=getAngle();
+    }
+    else{
+        disableDriver();
+    }
+
 }
 
 void disableDriver(){
@@ -308,6 +319,7 @@ void disableDriver(){
 
 void enableDriver(){
     GPIOPinWrite(GPIO_PORTQ_BASE, GPIO_PIN_1, GPIO_PIN_1);
+    MotorInit(g_ui32SysClock);
 }
 
 //*****************************************************************************
@@ -331,11 +343,12 @@ void PositionControl(float target)
     if(angleErrorInt>=300){
         angleErrorInt=300;
     }
-    outputVelo=KP_angle*error + KI_angle*angleErrorInt;// + KD_angle*angleErrorDiff;//P*e(k)+I*sigma(e)+D*(e(k)-e(k-1))
+
+    TARGET_VELO=KP_angle*error + KI_angle*angleErrorInt;// + KD_angle*angleErrorDiff;//P*e(k)+I*sigma(e)+D*(e(k)-e(k-1))
     //lastAngleError=currentAngleError;
     //regulator
 
-	VelocityControl(outputVelo);
+
 }
 
 //*****************************************************************************
@@ -349,25 +362,27 @@ void VelocityControl(float target)
     prevVeloError=lastVeloError;
     lastVeloError=error;
 
+//
+//    if(target>0){
+//        if(outputCurrent>1500){
+//            outputCurrent=40;}
+//
+//        if(outputCurrent<0){
+//            outputCurrent=0;}
+//    }
+//    else if(target<0){
+//        if(outputCurrent<-40){
+//            outputCurrent=-40;}
+//
+//        if(outputCurrent>0){
+//            outputCurrent=0;}
+//    }
 
-    if(target>0){
-        if(outputCurrent>40){
-            outputCurrent=40;}
-
-        if(outputCurrent<0){
-            outputCurrent=0;}
-    }
-    else if(target<0){
-        if(outputCurrent<-40){
-            outputCurrent=-40;}
-
-        if(outputCurrent>0){
-            outputCurrent=0;}
-    }
-
-    PWMoutput((int)outputCurrent);
+    TARGET_CUR = outputCurrent;
+//    PWMoutput((int)outputCurrent);
     //skip currentcontrol
     //CurrentControl(outputCurrent);
+    PWMoutput(outputCurrent);
 }
 
 //*****************************************************************************
@@ -376,8 +391,8 @@ void VelocityControl(float target)
 //*****************************************************************************
 void CurrentControl(float target)
 {
-    float error=target-getCurrent();//current sample rate should be consistent with the position
-	duty+=KP_current*(error-lastCurError) + KI_current*error + KD_current*(error+prevCurError-2*lastCurError);//P*(e(k)-e(k-1))+I*e(k)+D*((e(k)-e(k-1))-(e(k-1)-e(k-2)))
+    float error=target-(getCurrent()*direction);//current sample rate should be consistent with the position
+	duty+=(KP_current*(error-lastCurError) + KI_current*error + KD_current*(error+prevCurError-2*lastCurError));//P*(e(k)-e(k-1))+I*e(k)+D*((e(k)-e(k-1))-(e(k-1)-e(k-2)))
 	prevCurError=lastCurError;
 	lastCurError=error;
     //regulator

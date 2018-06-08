@@ -17,6 +17,8 @@
 #include "driverlib/sysctl.h"
 #include "utils/uartstdio.h"
 
+#define MAX_TEMP 80
+
 void TempInit(uint32_t);
 
 float getTemp(void);
