@@ -1,7 +1,6 @@
 /*
- * crc.c
- *
- * Author: Mark Adler (https://stackoverflow.com/questions/15169387/definitive-crc-for-c)
+ * Cyclic Redundancy Check implementation
+ * Credit: Mark Adler (https://stackoverflow.com/questions/15169387/definitive-crc-for-c)
  */
 
 #include "crc.h"
@@ -9,17 +8,17 @@
 // 8-bit CRC using the polynomial x^8+x^6+x^3+x^2+1, 0x14D.
 // Chosen based on Koopman, et al. (0xA6 in his notation = 0x14D >> 1):
 // http://www.ece.cmu.edu/~koopman/roses/dsn04/koopman04_crc_poly_embedded.pdf
-//
+
 // This implementation is reflected, processing the least-significant bit of the
 // input first, has an initial CRC register value of 0xff, and exclusive-or's
 // the final register value with 0xff. As a result the CRC of an empty string,
 // and therefore the initial CRC value, is zero.
-//
+
 // The standard description of this CRC is:
 // width=8 poly=0x4d init=0xff refin=true refout=true xorout=0xff check=0xd8
 // name="CRC-8/KOOP"
 
-static const uint8_t crc8_table[256] = {
+const uint8_t crc8_table[256] = {
     0xea, 0xd4, 0x96, 0xa8, 0x12, 0x2c, 0x6e, 0x50, 0x7f, 0x41, 0x03, 0x3d,
     0x87, 0xb9, 0xfb, 0xc5, 0xa5, 0x9b, 0xd9, 0xe7, 0x5d, 0x63, 0x21, 0x1f,
     0x30, 0x0e, 0x4c, 0x72, 0xc8, 0xf6, 0xb4, 0x8a, 0x74, 0x4a, 0x08, 0x36,
@@ -41,14 +40,14 @@ static const uint8_t crc8_table[256] = {
     0xdb, 0xe5, 0xa7, 0x99, 0x23, 0x1d, 0x5f, 0x61, 0x9f, 0xa1, 0xe3, 0xdd,
     0x67, 0x59, 0x1b, 0x25, 0x0a, 0x34, 0x76, 0x48, 0xf2, 0xcc, 0x8e, 0xb0,
     0xd0, 0xee, 0xac, 0x92, 0x28, 0x16, 0x54, 0x6a, 0x45, 0x7b, 0x39, 0x07,
-    0xbd, 0x83, 0xc1, 0xff};
+    0xbd, 0x83, 0xc1, 0xff
+};
 
 // Return the CRC-8 of data[0..len-1] applied to the seed crc. This permits the
 // calculation of a CRC a chunk at a time, using the previously returned value
 // for the next seed. If data is NULL, then return the initial seed. See the
 // test code for an example of the proper usage.
-unsigned crc8(unsigned crc, unsigned char const *data, size_t len)
-{
+unsigned crc8(unsigned crc, unsigned char const *data, size_t len) {
     if (data == NULL)
         return 0;
     crc &= 0xff;
@@ -57,38 +56,3 @@ unsigned crc8(unsigned crc, unsigned char const *data, size_t len)
         crc = crc8_table[crc ^ *data++];
     return crc;
 }
-
-// crc8_slow() is an equivalent bit-wise implementation of crc8() that does not
-// need a table, and which can be used to generate crc8_table[]. Entry k in the
-// table is the CRC-8 of the single byte k, with an initial crc value of zero.
-// 0xb2 is the bit reflection of 0x4d, the polynomial coefficients below x^8.
-unsigned crc8_slow(unsigned crc, unsigned char const *data, size_t len)
-{
-    if (data == NULL)
-        return 0;
-    crc = ~crc & 0xff;
-    while (len--) {
-        crc ^= *data++;
-        uint8_t k;
-        for (k = 0; k < 8; k++)
-            crc = crc & 1 ? (crc >> 1) ^ 0xb2 : crc >> 1;
-    }
-    return crc ^ 0xff;
-}
-
-#ifdef TEST
-#include <stdio.h>
-#define CHUNK 16384
-
-int main(void) {
-    unsigned char buf[CHUNK];
-    unsigned crc = crc8(0, NULL, 0);
-    size_t len;
-    do {
-        len = fread(buf, 1, CHUNK, stdin);
-        crc = crc8(crc, buf, len);
-    } while (len == CHUNK);
-    printf("%#02x\n", crc);
-    return 0;
-}
-#endif
