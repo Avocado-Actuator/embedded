@@ -498,25 +498,10 @@ void UARTSend(const uint8_t *buffer, uint32_t length) {
             space = ROM_UARTCharPutNonBlocking(UART7_BASE, msg[i]);
     }
 }
+
 // <<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>
 // <<<<<<<<<<<< HANDLERS >>>>>>>>>>
 // <<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>
-
-/**
- * Console interrupt handler
- */
-void ConsoleIntHandler(void) {
-    // Get the interrupt status.
-    uint32_t ui32Status = ROM_UARTIntStatus(UART0_BASE, true);
-    // Clear the asserted interrupts.
-    ROM_UARTIntClear(UART0_BASE, ui32Status);
-
-    // // Loop while there are characters in the receive FIFO.
-    // while(ROM_UARTCharsAvail(UART0_BASE)) {
-    //     // Read the next character from the UART and write it back to the UART.
-    //     ROM_UARTCharPutNonBlocking(UART7_BASE, ROM_UARTCharGetNonBlocking(UART0_BASE));
-    // }
-}
 
 /**
  * UART interrupt handler
@@ -526,7 +511,6 @@ void UARTIntHandler(void) {
     uint32_t ui32Status = ROM_UARTIntStatus(UART7_BASE, true);
     // Clear the asserted interrupts.
     ROM_UARTIntClear(UART7_BASE, ui32Status);
-
     ROM_UARTIntDisable(UART7_BASE, UART_INT_RX | UART_INT_RT);
 
     // Loop while there are characters in the receive FIFO.
