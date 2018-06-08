@@ -19,12 +19,11 @@
 #include "utils/uartstdio.h"
 #include "rs485.h"
 
-#define MAX_CURRENT 2000
-
 #define CURRENT_CHANNELS 3
 #define OFFSET_SAMPLES 20
 #define CURRENT_SAMPLES 50
 #define CSA_GAIN 20
+#define MAX_CURRENT 2000
 //
 // This array is used for storing the data read from the ADC FIFO. It
 // must be as large as the FIFO for the sequencer in use.

@@ -28,16 +28,15 @@ float   frequency,
         duty;
 int     direction;
 
+int     pos_int,
+        vel_int,
+        cur_int;
 // angle
 float   ANGLE,
         TARGET_ANGLE,
         PrevAngle,
         angleErrorInt,
         outputVelo;
-
-int     pos_int,
-        vel_int,
-        cur_int;
 
 // velocity
 float   VELO,
@@ -65,7 +64,6 @@ float KD_angle;
 float KP_current;
 float KI_current;
 float KD_current;
-
 
 uint8_t time_flag_motor;
 uint8_t time_flag_console;

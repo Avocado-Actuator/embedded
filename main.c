@@ -26,7 +26,7 @@
 #include "temp.h"
 
 // System clock rate in Hz.
-volatile uint32_t g_ui32SysClock;
+uint32_t g_ui32SysClock;
 
 //*****************************************************************************
 //
@@ -79,8 +79,6 @@ ConsoleInit(void)
 }
 
 //*****************************************************************************
-int flag=0;
-int TARGET=0;
 void
 UARTIntHandler0(void)
 {
@@ -106,7 +104,7 @@ UARTIntHandler0(void)
         //
         char ch=ROM_UARTCharGetNonBlocking(UART0_BASE);
         ROM_UARTCharPutNonBlocking(UART0_BASE,ch);
-        TARGET_VELO=(int)(ch-'0')*20;
+        TARGET_ANGLE=(int)(ch-'0')*36;
 //        if(flag==1){
 //            flag=0;
 //        }
@@ -127,17 +125,14 @@ UARTIntHandler0(void)
 // return: None
 //*****************************************************************************
 int timer0_cnt = 0;
-int count=0;
+volatile uint32_t count=0;
 volatile uint32_t cur_ctl_flag = 0;
 volatile uint32_t vel_ctl_flag = 0;
 volatile uint32_t pos_ctl_flag = 0;
-
 void Timer0IntHandler(void)
 {
     // Clear the timer interrupt.
-
     ROM_TimerIntClear(TIMER0_BASE, TIMER_TIMA_TIMEOUT);
-
     timer0_cnt++;
     if ((timer0_cnt % cur_int) == 0){
         cur_ctl_flag = 1;
@@ -149,15 +144,15 @@ void Timer0IntHandler(void)
         pos_ctl_flag = 1;
         timer0_cnt = 0;
     }
+
 //    updateAngle();
 //    updateVelocity();
-//    updateCurrent();
-
-//    PWMoutput(TARGET*10);
-
-    //PWMoutput(-20);
-//    PositionControl(TARGET_ANGLE);
-    //VelocityControl(TARGET_VELO);
+//    if(flag){
+//        PositionControl(TARGET);
+//    }
+//    else{
+//        PWMoutput(0);
+//    }
 
 }
 
@@ -165,8 +160,13 @@ void Timer1IntHandler(void){
     ROM_TimerIntClear(TIMER1_BASE, TIMER_TIMA_TIMEOUT);
 //    updateAngle();
 //    UARTprintf("Angle:%d\n\n",(int)getAngle());
+    //updateCurrent();
+    //UARTprintf("Current: %d\n", (int)getCurrent());
+//    UARTprintf("duty: %d\n\n", (int)duty);
 
+    UARTprintf("count: %d\n", (int)count);
     count=0;
+//
     UARTprintf("Target Angle: %d\n", (int)TARGET_ANGLE);
     UARTprintf("Angle: %d\n", (int)getAngle());
     UARTprintf("Target Velocity: %d\n", (int)TARGET_VELO);
@@ -174,17 +174,9 @@ void Timer1IntHandler(void){
     UARTprintf("Target Current: %d\n", (int)TARGET_CUR);
     UARTprintf("Current: %d\n", (int)getCurrent());
     UARTprintf("outputPWN: %d\n\n", (int)duty);
-//    UARTprintf("duty: %d\n\n", (int)duty);
 
-
-//    UARTprintf("Target:%d\n",TARGET);
-//    UARTprintf("Angle:%d\n\n",(int)getAngle());
-//    UARTprintf("outVelo:%d\n",(int)outputVelo);
-//    UARTprintf("Velo:%d\n\n",(int)getVelocity());
-//    UARTprintf("OutputPWM:%d\n\n",(int)outputCurrent);
-
-    //updateTemp();
-    //UARTprintf("Temp: %d\n", (int)getTemp());
+    updateTemp();
+    UARTprintf("Temp: %d\n", (int)getTemp());
 }
 
 
@@ -233,32 +225,21 @@ main(void) {
 
     while(1)
     {
-        // Check the busy flag in the uart7 register. If not busy, set transceiver pin low
-//        if (UARTReady()){
-//            UARTSetRead();
-//        }
-//        UARTprintf("Start\n");
-//        int i;
-//        for (i =0; i < 100000; i++) {
-//            updateCurrent();
-//        }
-//        UARTprintf("Stop\n");
-//        UARTprintf("Flag: %d\n", cur_ctl_flag);
         if (cur_ctl_flag == 1){
             cur_ctl_flag = 0;
+//            count++;
             updateCurrent();
-            //CurrentControl(TARGET_CUR);
-//            UARTprintf("Flag\n");
+//            CurrentControl(TARGET_CUR);
         }
         if (vel_ctl_flag == 1){
             vel_ctl_flag = 0;
+            count++;
             updateAngle();
             updateVelocity();
-            VelocityControl(TARGET_VELO);
-        }
-        if (pos_ctl_flag == 1){
+            PositionControl(TARGET_ANGLE);
+//            VelocityControl(0);
 //            PositionControl(TARGET_ANGLE);
-            pos_ctl_flag = 0;
         }
+
     }
 }
