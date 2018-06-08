@@ -17,7 +17,7 @@
 #include "driverlib/sysctl.h"
 #include "driverlib/uart.h"
 #include "utils/uartstdio.h"
-#include "rs485.h"
+#include "comms.h"
 
 #define MAX_CURRENT 2000
 
