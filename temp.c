@@ -60,7 +60,8 @@ void updateTemp(){
     setTemp(decimal+intergral);
     //UARTprintf("after: %d\n", data);
 
-    if(Temp>MAX_TEMP){
+    if(getTemp()>MAX_TEMP){
+        UARTprintf("Motor too hot! Freeze!");
         brake();
     }
     return;

@@ -1,13 +1,4 @@
-#include <stdbool.h>
-#include <stdint.h>
-
-#include "inc/hw_memmap.h"
-#include "inc/hw_ints.h"
-
-#include "driverlib/timer.h"
-
 #include "timer.h"
-#include "motor.h"
 
 uint32_t TIMER_0_TIME, heartbeat_panic_counter;
 
@@ -72,6 +63,7 @@ void Timer0IntHandler(void) {
  */
 void Timer1IntHandler(void){
     ROM_TimerIntClear(TIMER1_BASE, TIMER_TIMA_TIMEOUT);
+    updateTemp();
     // UARTprintf("Target Angle: %d\n", (int)TARGET_ANGLE);
     // UARTprintf("Angle: %d\n", (int)getAngle());
     // UARTprintf("Target Velocity: %d\n", (int)TARGET_VELO);
@@ -79,4 +71,5 @@ void Timer1IntHandler(void){
     // UARTprintf("Target Current: %d\n", (int)TARGET_CUR);
     // UARTprintf("Current: %d\n", (int)getCurrent());
     // UARTprintf("outputPWN: %d\n\n", (int)duty);
+    // UARTprintf("Temp: %d\n\n", (int)getTemp());
 }

@@ -79,9 +79,9 @@ void updateCurrent() {
         for (i = 0; i < CURRENT_CHANNELS; i++ ){
             //UARTprintf("Raw ADC %d:%d\n",i,isensereadings[i]);
             volt = (float)(isensereadings[i]+offset[i]) / 4095.0 * 3.3; // turns analog value into voltage
-//			UARTprintf("Voltage %d:%d\n",i,(int)(volt*1000));
+			//UARTprintf("Voltage %d:%d\n",i,(int)(volt*1000));
             // i = (Vref / 2 - Vmeasured) / (gain * Rsense)
-            isense[i]=(3.3/2 - volt) / (CSA_GAIN * 0.031);
+            isense[i]=(3.3/2 - volt) / (CSA_GAIN * 0.055);
         }
 
 //		UARTprintf("H1:%d\n",(int)h1);
@@ -115,7 +115,9 @@ void updateCurrent() {
 
     PrevCurrent = getCurrent();
     setCurrent(1000*sum/CURRENT_SAMPLES);//unit mA
+
     if(getCurrent()>MAX_CURRENT){
+        UARTprintf("Drawing too much current! Freeze!");
         brake();
     }
     return;

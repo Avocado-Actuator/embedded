@@ -20,8 +20,8 @@ void clearStatus(uint8_t newflag) { STATUS &= newflag; }
 
 uint32_t pui32DataTx[5];
 uint32_t pui32DataRx[5];
-extern uint32_t g_ui32SysClock;
-volatile int holdPos=1;
+int FREEZE_FLAG=0;
+
 
 //*****************************************************************************
 // Initializer of motor driver, including timer, PWM, SPI and GPIO
@@ -38,20 +38,20 @@ void MotorInit(uint32_t g_ui32SysClock)
     outputCurrent=0;
     direction=1;
 
-    pos_int=80;
-    vel_int=40;
-    cur_int=20;
+    pos_int=20;
+    vel_int=20;
+    cur_int=5;
 
-    KP_angle=0.1;
-    KI_angle=0.001;
-    KD_angle=0.001;
+    KP_angle=1;
+    KI_angle=0.01;
+//    KD_angle=0;
 
-//    KP_velocity=0.005;
-//    KI_velocity=0.05;
-//    KD_velocity=0.0;
+    KP_velocity=0.001;
+    KI_velocity=0.02;
+    KD_velocity=0.00;
 
-    KP_current=0.0001;
-    KI_current=0.001;
+    KP_current=0.001;
+    KI_current=0.005;
     KD_current=0;
 
     TARGET_ANGLE=0;
@@ -81,7 +81,6 @@ void MotorInit(uint32_t g_ui32SysClock)
     MotorSPISetting();
 
     HallSensorInit();
-
     //zeroPosition();
     UARTprintf("motor driver initialized!\n");
 
@@ -209,7 +208,6 @@ void updateAngle() {
     readAverageData(&angle, &mag, &agc);
     section = getSection();
     PrevAngle = getAngle();
-
     // Calculate final angle position in degrees
     setAngle(calcFinalAngle(angle, section));
 //    UARTprintf("Final angle: %d\n", (int)getAngle());
@@ -237,7 +235,7 @@ void updateVelocity() {
     diff=diff>180?diff-360:diff;
 
     prevVelo=getVelocity();
-    float newVelo=diff*25/360*60;// assumes measuring velocity every 1 mili seconds
+    float newVelo=diff*1000/vel_int/360*60;// assumes measuring velocity every 1 mili seconds
 
     if(newVelo-prevVelo>50){
         setVelocity(prevVelo+50);
@@ -290,15 +288,17 @@ uint32_t getPWM(){
 // Motor brake, set pwm to 0 and set nBrake to low.
 //*****************************************************************************
 void brake(){
-    //UARTprintf("Emergency braking!\n");
-    if(holdPos==1){
-        updateAngle();
+    if(FREEZE_FLAG==1){
         TARGET_ANGLE=getAngle();
     }
     else{
         disableDriver();
     }
-
+	//UARTprintf("\nbraking");
+    //untested
+    //GPIOPinWrite(GPIO_PORTP_BASE, GPIO_PIN_1,0);
+    //PWMoutput(5000,0);
+    //GPIOPinWrite(GPIO_PORTP_BASE, GPIO_PIN_1,GPIO_PIN_1);
 }
 
 void disableDriver(){
@@ -307,7 +307,7 @@ void disableDriver(){
 
 void enableDriver(){
     GPIOPinWrite(GPIO_PORTQ_BASE, GPIO_PIN_1, GPIO_PIN_1);
-    MotorInit(g_ui32SysClock);
+    MotorSPISetting();
 }
 
 //*****************************************************************************
@@ -319,24 +319,23 @@ void PositionControl(float target)
     float error = target - getAngle();
     error=error<-180?error+360:error;
     error=error>180?error-360:error;
-//	if ( error<=5 && error>=-5){//if reach the target position, trigger break
-//	    //maybe you want to hold it instead of brake like
-//	    //VelocityControl(0);
-//		brake();
+//	if ( error<=5 && error>=-5){
+//	   TARGET_VELO=0;
 //		return;
 //	}
     //error*=direction;
     //error=error>0?error:error+360;
     angleErrorInt+=error;
-    if(angleErrorInt>=300){
-        angleErrorInt=300;
+    if(angleErrorInt>=500){
+        angleErrorInt=500;
     }
 
-    TARGET_VELO=KP_angle*error + KI_angle*angleErrorInt;// + KD_angle*angleErrorDiff;//P*e(k)+I*sigma(e)+D*(e(k)-e(k-1))
-    //lastAngleError=currentAngleError;
-    //regulator
+    float outputVelo=KP_angle*error + KI_angle*angleErrorInt;
 
-
+//    TARGET_VELO=outputVelo;P*e(k)+I*sigma(e)+D*(e(k)-e(k-1))
+    TARGET_CUR=outputVelo;
+    PWMoutput((int)outputVelo);
+	//VelocityControl(outputVelo);
 }
 
 //*****************************************************************************
@@ -350,9 +349,9 @@ void VelocityControl(float target)
     prevVeloError=lastVeloError;
     lastVeloError=error;
 
-//
+
 //    if(target>0){
-//        if(outputCurrent>1500){
+//        if(outputCurrent>40){
 //            outputCurrent=40;}
 //
 //        if(outputCurrent<0){
@@ -366,11 +365,10 @@ void VelocityControl(float target)
 //            outputCurrent=0;}
 //    }
 
-    TARGET_CUR = outputCurrent;
-//    PWMoutput((int)outputCurrent);
+    TARGET_CUR=outputCurrent;
+    PWMoutput((int)outputCurrent);
     //skip currentcontrol
     //CurrentControl(outputCurrent);
-    PWMoutput(outputCurrent);
 }
 
 //*****************************************************************************
@@ -379,8 +377,8 @@ void VelocityControl(float target)
 //*****************************************************************************
 void CurrentControl(float target)
 {
-    float error=target-(getCurrent()*direction);//current sample rate should be consistent with the position
-	duty+=(KP_current*(error-lastCurError) + KI_current*error + KD_current*(error+prevCurError-2*lastCurError));//P*(e(k)-e(k-1))+I*e(k)+D*((e(k)-e(k-1))-(e(k-1)-e(k-2)))
+    float error=target-getCurrent()*direction;//current sample rate should be consistent with the position
+	duty+=KP_current*(error-lastCurError) + KI_current*error + KD_current*(error+prevCurError-2*lastCurError);//P*(e(k)-e(k-1))+I*e(k)+D*((e(k)-e(k-1))-(e(k-1)-e(k-2)))
 	prevCurError=lastCurError;
 	lastCurError=error;
     //regulator

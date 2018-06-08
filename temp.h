@@ -17,7 +17,7 @@
 #include "driverlib/sysctl.h"
 #include "utils/uartstdio.h"
 
-#define MAX_TEMP 80
+#define MAX_TEMP 60
 
 void TempInit(uint32_t);
 

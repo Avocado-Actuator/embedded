@@ -119,7 +119,7 @@ float calcFinalAngle(uint32_t angle, uint32_t section) {
         final_section = section/2;
     }
 //    UARTprintf("section:%d\n",(int)section);
-//    UARTprintf("Angle:%d\n",(int)angle);
+//    UARTprintf("Mag Angle:%d\n",(int)angle);
 //    UARTprintf("final_section:%d\n",(int)final_section);
     return ((float) angle/360.0)*45.0 + (float) final_section*45.0;
 }
