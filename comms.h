@@ -95,4 +95,11 @@ enum Parameter {
     Status  = 7
 };
 
+enum Mode {
+    ModePos = 0,
+    ModeVel = 1,
+    ModeCur = 2
+};
+enum Mode MAIN_COMMAND_MODE;
+
 #endif /* comms_H_ */
