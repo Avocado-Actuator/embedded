@@ -181,37 +181,87 @@ void UARTPrintFloat(float val, bool verbose) {
         : UARTprintf("%s\n", str);
 }
 
-//*****************************************************************************
-//
-// Send a string to the UART.
-//
-//*****************************************************************************
-void
-UARTSend(const uint8_t *pui8Buffer, uint32_t ui32Count)
-{
-    // Add CRC byte to message
-    uint8_t crc = crc8(0, pui8Buffer, ui32Count);
-    bool space = true;
-    // Loop while there are more characters to send.
-    while(ui32Count--)
-    {
-        // Write the next character to the UART.
-        // putchar returns false if the send FIFO is full
-        space = ROM_UARTCharPutNonBlocking(UART7_BASE, *pui8Buffer);
-        // If send FIFO is full, wait until we can put the char in
-        while (!space){
-            space = ROM_UARTCharPutNonBlocking(UART7_BASE, *pui8Buffer);
+// <<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>
+// <<<<<<<<<<<< ACTIONS >>>>>>>>>>>
+// <<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>
+
+/**
+ * Sets given parameter to given value.
+ *
+ * @param par - parameter to set
+ * @param value - value to set parameter to
+ * @param verbose - if true print to console for debugging
+ */
+void setData(enum Parameter par, union Flyte * value, bool verbose) {
+    if(verbose) UARTprintf("\nin setData\n");
+    if(verbose) UARTprintf("Target value: %d\n", value->f);
+    switch(par) {
+        case Pos: {
+//            setTargetAngle(value->f);
+            if(verbose) {
+                UARTprintf("New target angle: ");
+//                UARTPrintFloat(getTargetAngle(), false);
+            }
+            setStatus(COMMAND_SUCCESS);
+            break;
         }
-        *pui8Buffer++;
-    }
-    /*space = ROM_UARTCharPutNonBlocking(UART7_BASE, crc);
-    // If send FIFO is full, wait until we can put the char in
-    while (!space){
-        space = ROM_UARTCharPutNonBlocking(UART7_BASE, crc);
-    }*/
-    space = ROM_UARTCharPutNonBlocking(UART7_BASE, STOP_BYTE);
-    while (!space) {
-        space = ROM_UARTCharPutNonBlocking(UART7_BASE, STOP_BYTE);
+        case Vel: {
+//            setTargetVelocity(value->f);
+            if(verbose) {
+                UARTprintf("New target velocity: ");
+//                UARTPrintFloat(getTargetVelocity(), false);
+            }
+            setStatus(COMMAND_SUCCESS);
+            break;
+        }
+        case Cur: {
+//            setTargetCurrent(value->f);
+            if(verbose) {
+                UARTprintf("New target current: ");
+//                UARTPrintFloat(getTargetCurrent(), false);
+            }
+            setStatus(COMMAND_SUCCESS);
+            break;
+        }
+        case Adr: {
+            setAddress(value->bytes[0]);
+            if(verbose) {
+                UARTprintf("New address: ");
+                uint8_t temp = getAddress();
+                UARTprintf((const char*) &temp, false);
+            }
+            setStatus(COMMAND_SUCCESS);
+            break;
+        }
+        case MaxCur: {
+//            setMaxCurrent(value->f);
+            if(verbose) {
+                UARTprintf("New max current: ");
+//                UARTPrintFloat(getMaxCurrent(), false);
+            }
+            setStatus(COMMAND_SUCCESS);
+            break;
+        }
+        case EStop: {
+//            setEStop(value->bytes[0]);
+            if(verbose) {
+                UARTprintf("New estop behavior: %x\n", value->bytes[0]);
+//                uint8_t temp = getEStop();
+//                UARTprintf((const char*) &temp, false);
+            }
+            setStatus(COMMAND_SUCCESS);
+            break;
+        }
+        case Tmp: {
+            if(verbose) UARTprintf("Invalid set, user tried to set temperature\n");
+            clearStatus(COMMAND_FAILURE);
+            break;
+        }
+        default: {
+            if(verbose) UARTprintf("Tried to set invaliad parameter, aborting\n");
+            clearStatus(COMMAND_FAILURE);
+            break;
+        }
     }
 }
 
@@ -219,122 +269,229 @@ UARTSend(const uint8_t *pui8Buffer, uint32_t ui32Count)
  * Sends value of given parameter on UART.
  *
  * @param par - parameter to send
+ * @param id - message identifier
+ * @param verbose - whether to print out
  */
-void
-sendData(enum Parameter par) {
-    UARTprintf("\nin sendData\n");
-
-    float value;
+void getData(enum Parameter par, uint8_t id, bool verbose) {
+    union Flyte value;
     switch(par) {
-        case Pos: UARTprintf("Current pos: "); UARTPrintFloat(getAngle(), false); value = getAngle(); break;
-        case Vel: UARTprintf("Current vel: "); UARTPrintFloat(getVelocity(), false); value = getVelocity(); break;
-        case Cur: UARTprintf("Current current: "); UARTPrintFloat(getCurrent(), false); value = getCurrent(); break;
-        case Tmp: UARTprintf("Current temperature: "); UARTPrintFloat(getTemp(), false); value = getTemp(); break;
-        default: UARTprintf("Asked for invalid parameter, aborting"); return;
+//        case Pos: {
+//            UARTprintf("Current pos: ");
+//            UARTPrintFloat(getAngle(), false);
+//            value.f = getAngle();
+//            setStatus(COMMAND_SUCCESS);
+//            break;
+//        }
+//        case Vel: {
+//            UARTprintf("Current vel: ");
+//            UARTPrintFloat(getVelocity(), false);
+//            value.f = getVelocity();
+//            setStatus(COMMAND_SUCCESS);
+//            break;
+//        }
+//
+//        case Cur: {
+//            UARTprintf("Current current: ");
+//            UARTPrintFloat(getCurrent(), false);
+//            value.f = getCurrent();
+//            setStatus(COMMAND_SUCCESS);
+//            break;
+//        }
+//
+        case Tmp: {
+//            UARTPrintFloat(getTemp(), false);
+//            value.f = getTemp();
+            value.f = 123.987;
+            if(verbose) {
+                UARTprintf("Current temperature: \n");
+                UARTPrintFloat(value.f, true);
+            }
+            setStatus(COMMAND_SUCCESS);
+            break;
+        }
+
+//        case MaxCur: {
+//            UARTprintf("Max Current Setting: ");
+//            UARTPrintFloat(getMaxCurrent(), false);
+//            value.f = getMaxCurrent();
+//            setStatus(COMMAND_SUCCESS);
+//            break;
+//        }
+//
+//        case EStop: {
+//            UARTprintf("Emergency Stop Behaviour: ");
+//            uint8_t temp = getEStop();
+//            UARTprintf((const char*) &temp, false);
+//            value.bytes[0] = temp;
+//            setStatus(COMMAND_SUCCESS);
+//            uint8_t bytes = value.bytes[0];
+//            UARTSend((const uint8_t*) &bytes, 1);
+//            return;
+//        }
+//
+//        case Status: {
+//            UARTprintf("Status Register: ");
+//            uint8_t temp = getStatus();
+//            UARTprintf((const char*) &temp, false);
+//            value.bytes[0] = temp;
+//            setStatus(COMMAND_SUCCESS);
+//            uint8_t bytes = value.bytes[0];
+//            UARTSend((const uint8_t*) &bytes, 1);
+//            return;
+//        }
+
+        default: {
+            UARTprintf("Asked for invalid parameter, aborting\n");
+             clearStatus(COMMAND_FAILURE);
+             break;
+        }
     }
+    uint8_t msg[5];
+    if (!(getStatus() & ~COMMAND_FAILURE)){ // true if command failed
+//        UARTprintf("Get failed :(\n");
+        msg[0] = getStatus();
+        msg[1] = id;
+        UARTSend(msg, 2);
+    } else {
+//        UARTprintf("Get succeeded! :)\n");
+        msg[0] = id;
+        int i;
+        for(i = 0; i < 4; ++i)
+            msg[i+1] = value.bytes[i];
 
-    // MANUALLY SETTING BRAIN ADDR FOR NOW
-    BRAIN_ADDR = 0;
-
-    char str[40];
-    sprintf(str, "%d %f", BRAIN_ADDR, value);
-    UARTprintf("\nMessage %s", str);
-    UARTPrintFloat(value, true);
-
-    UARTSend((uint8_t *) str, strlen(str));
+        UARTSend(msg, 5);
+    }
 }
 
-/**
- * Sets given parameter to given value.
- *
- * @param par - parameter to set
- * @param value - value to set parameter to
- */
-void
-setData(enum Parameter par, char* value) {
-    UARTprintf("\nin setData\n");
-
-    float converted = strtof(value, NULL);
-    UARTPrintFloat(converted, false);
-
-    switch(par) {
-        case Pos: setTargetAngle(converted); UARTprintf("New value: "); UARTPrintFloat(getTargetAngle(), false); break;
-        case Vel: setTargetVelocity(converted); UARTprintf("New value: "); UARTPrintFloat(getTargetVelocity(), false); break;
-        case Cur: setTargetCurrent(converted); UARTprintf("New value: "); UARTPrintFloat(getTargetCurrent(), false); break;
-        case Tmp: UARTprintf("Invalid set, user tried to set temperature"); return;
-        default: UARTprintf("Tried to set invaliad parameter, aborting"); return;
-    }
-
-    UARTSend("Successfully set", 16);
-}
+// <<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>
+// <<<<<<< MESSAGE HANDLING >>>>>>>
+// <<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>
 
 /**
  * Takes actions on message as appropriate.
  *
  * If address does not match our own, bail out and send message on.
  *
- *
  * @param buffer - pointer to the message
  * @param length - the length of the message
  * @param verbose - if true print to console for debugging
  * @param echo - if true simply echo the message, can also be helpful for debugging
- * @return if we successfully handled a message meant for us
+ * @return if response needed, valid id 0-255, else 65535 (max size of uint16_t)
  */
-bool
-handleUART(char* buffer, uint32_t length, bool verbose, bool echo) {
-    if(echo) {
-        UARTSend((uint8_t *)buffer, length);
-    } else {
-        UARTprintf("\n\nText: %s\n\n", buffer);
-        char tok[40] = "";
-        // initially tokenize on spaces
-        char endByte = ' ';
+uint16_t handleUART(uint8_t* buffer, uint32_t length, bool verbose, bool echo) {
+    // get address
+    uint8_t tempaddr = buffer[ADDR_IND];
 
-        // MANUALLY SETTING ADDR
-        ADDR = 1;
+    // get out quick on broadcast address
+    if(tempaddr == BROADCAST_ADDR) return NO_RESPONSE;
 
-        // get address
-        char* iter; // = getToken(buffer, tok, ' ', 40);
-        if(verbose) UARTprintf("Address: %s\n", tok);
-
-        if(((uint8_t) strtol(tok, NULL, 10)) != ADDR) {
-            if(verbose) UARTprintf("Not my address, abort");
-            return false;
+    if(verbose) {
+        UARTprintf("\nNew message:\n");
+        int i;
+        for (i = 0; i < length; ++i) {
+            UARTprintf("Byte %d: %x\n", i, buffer[i]);
         }
-
-        // trailing pointer to end of last token
-        // can be used to calculate token length
-        // char* trail = buffer; // reset to iter on subsequent uses
-        // uint32_t token_length = distBetween(trail, iter) - 1;
-
-        // get either "get" or "set"
-        // iter = getToken(iter, tok, ' ', 40);
-        if(verbose) UARTprintf("Command: %s\n", tok);
-
-        enum Command type = strcmp(tok, "get") == 0 ? Get : Set;
-        // if get then next token is last and ends at STOP_BYTE
-        endByte = type == Get ? STOP_BYTE : ' ';
-
-        // get parameter - { pos, vel, cur }
-        // iter = getToken(iter, tok, endByte, 40);
-        if(verbose) UARTprintf("Parameter: %s\n", tok);
-
-        enum Parameter par =
-                strcmp(tok, "pos") == 0 ? Pos
-                : strcmp(tok, "vel") == 0 ? Vel
-                : strcmp(tok, "cur") == 0 ? Cur : Tmp;
-
-        if(type == Set) {
-            // if set command then get parameter value to set to
-            // iter = getToken(iter, tok, STOP_BYTE, 40);
-            if(verbose) UARTprintf("Set val: %s\n", tok);
-            setData(par, tok);
-        } else {
-            sendData(par);
-        }
+        UARTprintf("\n");
     }
 
-    return true;
+    if(verbose) UARTprintf("Address: %x\n", tempaddr);
+
+
+    uint8_t crcin = recv[length-2];
+    if (crc8(0, (uint8_t *)recv, length-2) != crcin){
+        // ********** ERROR ***********
+        // Handle corrupted message
+        UARTprintf("Corrupted message, panic!\n");
+        ++panic_counter;
+        return NO_RESPONSE;
+    }
+
+    uint8_t id = recv[ID_IND];
+    if(verbose) UARTprintf("ID: %x\n", id);
+
+    if (tempaddr == ADDRSET_ADDR) {
+        setAddress(buffer[ADDRSET_IND]);
+        if(verbose) UARTprintf("Set address to %x\n", getAddress());
+        setStatus(COMMAND_SUCCESS);
+        return (uint16_t) id;
+    } else if(tempaddr != getAddress()) {
+        if(verbose) UARTprintf("Not my address, abort\n");
+        return NO_RESPONSE;
+    }
+
+    enum Command type = buffer[COM_IND] & CMD_MASK ? Set : Get;
+    if(verbose) UARTprintf("Command: %s\n", getCommandName(type));
+
+
+    enum Parameter par = buffer[COM_IND] & PAR_MASK;
+    if(par > MAX_PAR_VAL) {
+        if(verbose) UARTprintf("No parameter specified, abort");
+        clearStatus(COMMAND_FAILURE);
+        return (uint16_t) id;
+    }
+
+    if(verbose) UARTprintf("Parameter: %s\n", getParameterName(par));
+
+    if(type == Set) {
+        if (length < 5){
+            if(verbose) UARTprintf("No value provided, abort\n");
+            clearStatus(COMMAND_FAILURE);
+            return (uint16_t) id;
+        }
+
+        // if the cmd is Set then the next entity is a value. This value is either a single float
+        // which takes the next four bytes of buffer, or a single byte
+        union Flyte setval;
+        int i;
+        for (i = 0; i < length - 4; i++)
+            setval.bytes[i] = buffer[i+PAR_VAL_OFFSET];
+
+        if(verbose) {
+            UARTprintf("Setting value\n");
+            UARTPrintFloat(setval.f, true);
+        }
+        setData(par, &setval, verbose);
+        return (uint16_t) id;
+    } else {
+        getData(par, id, verbose);
+        return NO_RESPONSE;
+    }
+}
+
+/**
+ * Send message to UART connection.
+ *
+ * @param buffer - pointer to the message
+ * @param length - the length of the message
+ */
+void UARTSend(const uint8_t *buffer, uint32_t length) {
+//    UARTprintf("In UARTSend, message:\n");
+    uint8_t msg[8];
+    msg[0] = BRAIN_ADDR;
+    int i, len;
+    len = 1;
+    for (i = 0; i < length; i++){
+        msg[i+1] = buffer[i];
+        len++;
+    }
+    // Add CRC byte to message
+    uint8_t crc = crc8(0, (const unsigned char*) &msg, len);
+    msg[len++] = crc;
+    msg[len++] = STOP_BYTE;
+
+//    for(i = 0; i < len; i++) {
+//        UARTprintf("Byte %d: %x\n", i, msg[i]);
+//    }
+
+    bool space;
+    for (i = 0; i < len; i++) {
+        // write the next character to the UART.
+        // putchar returns false if the send FIFO is full
+        space = ROM_UARTCharPutNonBlocking(UART7_BASE, msg[i]);
+        // if send FIFO is full, wait until we can put the char in
+        while (!space)
+            space = ROM_UARTCharPutNonBlocking(UART7_BASE, msg[i]);
+    }
 }
 
 // <<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>
