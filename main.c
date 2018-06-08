@@ -32,7 +32,7 @@
 #include "temp.h"
 
 // System clock rate in Hz.
-volatile uint32_t g_ui32SysClock;
+uint32_t g_ui32SysClock;
 
 /**
  * Called if driver library encounters an error
@@ -82,29 +82,21 @@ int main(void) {
 
     while(1)
     {
-        // Check the busy flag in the uart7 register. If not busy, set transceiver pin low
-//        UARTprintf("Start\n");
-//        int i;
-//        for (i =0; i < 100000; i++) {
-//            updateCurrent();
-//        }
-//        UARTprintf("Stop\n");
-//        UARTprintf("Flag: %d\n", cur_ctl_flag);
-//         if (cur_ctl_flag == 1){
-//             cur_ctl_flag = 0;
-//             updateCurrent();
-//             //CurrentControl(TARGET_CUR);
-// //            UARTprintf("Flag\n");
-//         }
-//         if (vel_ctl_flag == 1){
-//             vel_ctl_flag = 0;
-//             updateAngle();
-//             updateVelocity();
-//             VelocityControl(TARGET_VELO);
-//         }
-//         if (pos_ctl_flag == 1){
-// //            PositionControl(TARGET_ANGLE);
-//             pos_ctl_flag = 0;
-//         }
+        if (cur_ctl_flag == 1){
+            cur_ctl_flag = 0;
+//            count++;
+            updateCurrent();
+//            CurrentControl(TARGET_CUR);
+        }
+        if (vel_ctl_flag == 1){
+            vel_ctl_flag = 0;
+            count++;
+            updateAngle();
+            updateVelocity();
+            PositionControl(TARGET_ANGLE);
+//            VelocityControl(0);
+//            PositionControl(TARGET_ANGLE);
+        }
+
     }
 }
