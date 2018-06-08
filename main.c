@@ -20,7 +20,6 @@
 #include "utils/uartstdio.h" // NEW INCLUDE!!!
 #include "rs485.h" // NEW INCLUDE!!!
 #include "reflectance.h" // NEW INCLUDE!!!
-#include "buttons.h" // NEW INCLUDE!!!
 #include "mag_encoder.h" // NEW INCLUDE!!!
 #include "motor.h"
 #include "temp.h"
@@ -218,7 +217,6 @@ main(void) {
 
     EncoderInit(g_ui32SysClock);
     ReflectInit();
-    ButtonsInit();
     TempInit(g_ui32SysClock);
     MotorInit(g_ui32SysClock);
     CurrentSenseInit();
