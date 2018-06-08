@@ -14,6 +14,7 @@
 #include "driverlib/interrupt.h"
 #include "driverlib/pin_map.h"
 #include "driverlib/sysctl.h"
+#include "driverlib/systick.h"
 #include "driverlib/uart.h"
 #include "isense.h" // NEW INCLUDE!!!
 #include "utils/uartstdio.h" // NEW INCLUDE!!!
@@ -64,8 +65,6 @@ ConsoleInit(void)
     // Initialize the UART for console I/O.
     UARTStdioConfig(0, 115200, 16000000);
 
-
-
    ROM_SysCtlPeripheralEnable(SYSCTL_PERIPH_UART0);
    ROM_SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOA);
 
@@ -80,7 +79,8 @@ ConsoleInit(void)
 }
 
 //*****************************************************************************
-
+int flag=1;
+int TARGET=0;
 void
 UARTIntHandler0(void)
 {
@@ -106,11 +106,68 @@ UARTIntHandler0(void)
         //
         char ch=ROM_UARTCharGetNonBlocking(UART0_BASE);
         ROM_UARTCharPutNonBlocking(UART0_BASE,ch);
-        TARGET_ANGLE=36*(int)(ch-'0');
+        TARGET=(int)(ch-'0')*20;
+//        if(flag==1){
+//            flag=0;
+//        }
+//        else{
+//            flag=1;
+//        }
         //zeroPosition();
 
     }
 }
+
+
+//*****************************************************************************
+// Handler of timer interrupts, set a clock for program
+//
+// input: None
+//
+// return: None
+//*****************************************************************************
+
+void Timer0IntHandler(void)
+{
+    // Clear the timer interrupt.
+    ROM_TimerIntClear(TIMER0_BASE, TIMER_TIMA_TIMEOUT);
+    updateAngle();
+    updateVelocity();
+//    updateCurrent();
+
+    if(flag){
+        VelocityControl(TARGET);
+        //PWMoutput(35);
+    }
+    else{
+        PWMoutput(0);
+    }
+    //PWMoutput(-20);
+//    PositionControl(TARGET_ANGLE);
+    //VelocityControl(TARGET_VELO);
+
+}
+
+void Timer1IntHandler(void){
+    ROM_TimerIntClear(TIMER1_BASE, TIMER_TIMA_TIMEOUT);
+//    updateAngle();
+//    UARTprintf("Angle:%d\n\n",(int)getAngle());
+    //updateCurrent();
+    //UARTprintf("Current: %d\n", (int)getCurrent());
+//    UARTprintf("duty: %d\n\n", (int)duty);
+
+
+    UARTprintf("Target:%d\n",TARGET);
+//    UARTprintf("Angle:%d\n\n",(int)getAngle());
+//    UARTprintf("outVelo:%d\n",(int)outputVelo);
+    UARTprintf("Velo:%d\n\n",(int)getVelocity());
+    UARTprintf("OutputPWM:%d\n\n",(int)outputCurrent);
+
+    //updateTemp();
+    //UARTprintf("Temp: %d\n", (int)getTemp());
+}
+
+
 //*****************************************************************************
 //
 // Main function
@@ -129,7 +186,9 @@ main(void) {
                                                  SYSCTL_OSC_MAIN |
                                                  SYSCTL_USE_PLL |
                                                  SYSCTL_CFG_VCO_480), 120000000);
+
     ROM_IntMasterEnable(); // Enable processor interrupts.
+
     ConsoleInit(); // Initialized UART0 for console output using UARTStdio
     UARTprintf("\n\nTiva has turned on...\n");
     //UARTSend((uint8_t *)"\033[2JTiva has turned on\n\r", 24);
@@ -147,8 +206,9 @@ main(void) {
     UARTprintf("Initialized\n\n");
 
 
-    PWMoutput(30);
+    PWMoutput(0);
     //disableDriver();
+
 
     while(1)
     {
@@ -156,6 +216,11 @@ main(void) {
 //        if (UARTReady()){
 //            UARTSetRead();
 //        }
-
+//        UARTprintf("Start\n");
+//        int i;
+//        for (i =0; i < 100000; i++) {
+//            updateCurrent();
+//        }
+//        UARTprintf("Stop\n");
     }
 }
