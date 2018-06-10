@@ -1,10 +1,3 @@
-/*
- * comms.h
- *
- *  Created on: Apr 21, 2018
- *      Author: Ryan
- */
-
 #ifndef comms_H_
 #define comms_H_
 
@@ -31,25 +24,25 @@
 #include "temp.h"
 #include "timer.h"
 
-void ConsoleInit(void);
+// <<<< INITS >>>>
 void CommsInit(uint32_t);
+void ConsoleInit(void);
 
-void UARTIntHandler(void);
-void UARTSend(const uint8_t*, uint32_t);
-void UARTSetAddress(uint8_t);
-uint8_t UARTGetAddress(void);
-
-void UARTPrintFloat(float, bool);
-
-void UARTIntHandler(void);
-void Timer0IntHandler(void);
-void UARTSend(const uint8_t*, uint32_t);
-
+// <<<< UTILITIES >>>>
 uint8_t getAddress(void);
 void setAddress(uint8_t);
+void UARTPrintFloat(float, bool);
+
+// <<<< MESSAGE HANDLING >>>>
+void UARTSend(const uint8_t*, uint32_t, bool);
+
+// <<<< HANDLERS >>>>
+void UARTIntHandler(void);
 
 uint32_t uartSysClock;
 
+// status flags
+// getters/setters in motor
 uint8_t recvIndex,
         ESTOP_HOLD,
         ESTOP_KILL,
@@ -63,17 +56,8 @@ uint8_t recvIndex,
         PAR_MASK,
         STATUS;
 
-// getters/setters in motor
-//status flags
-uint8_t ESTOP_HOLD,
-        ESTOP_KILL,
-        COMMAND_SUCCESS,
-        COMMAND_FAILURE,
-        OUTPUT_LIMITING,
-        OUTPUT_FREE;
+// <<<< data structures >>>>
 
-
-// data structures
 union Flyte {
   float f;
   uint8_t bytes[sizeof(float)];
