@@ -1,7 +1,3 @@
-/*
- * Main file for the Avocado embedded code
- */
-
 #include <stdint.h>
 #include <stdbool.h>
 
@@ -21,6 +17,8 @@
 #include "utils/uartstdio.h"
 // WE SHOULDNT NEED THIS
 // BUT WE DO, DONT TOUCH IT
+// the uartstdio header file doesn't seem to export a function we need so import
+// the `.c` file
 #include "utils/uartstdio.c"
 
 #include "timer.h"
@@ -40,6 +38,7 @@ uint32_t g_ui32SysClock;
 #ifdef DEBUG
 void __error__(char *pcFilename, uint32_t ui32Line) { }
 #endif
+
 
 //*****************************************************************************
 // SUPER IMPORTANT, CCS IS JANK, NEED TO INCREASE STACK SIZE MANUALLY IN ORDER
@@ -94,6 +93,5 @@ int main(void) {
             else if(MAIN_COMMAND_MODE == ModeVel)
                 VelocityControl(TARGET_VELO);
         }
-
     }
 }
