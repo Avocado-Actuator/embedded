@@ -1,21 +1,25 @@
 #include "timer.h"
 
-uint32_t TIMER_0_TIME, heartbeat_panic_counter;
-
-void TimerInit(uint32_t g_ui32SysClock)
-{
-    /************** Initialization for timer (1ms and 1s)  *****************/
-    //Enable the timer peripherals
+/**
+ * Initialize timers.
+ *
+ * @param g_ui32SysClock - system clock to sync with
+ */
+void TimerInit(uint32_t g_ui32SysClock) {
+    // enable timer peripherals
     ROM_SysCtlPeripheralEnable(SYSCTL_PERIPH_TIMER0);
     ROM_SysCtlPeripheralEnable(SYSCTL_PERIPH_TIMER1);
-    // Configure 32-bit periodic timers.
-    //1ms timer
+
+    // configure 32-bit periodic timers
+    // 1ms timer
     ROM_TimerConfigure(TIMER0_BASE, TIMER_CFG_PERIODIC);
-    ROM_TimerLoadSet(TIMER0_BASE, TIMER_A, g_ui32SysClock/1000);//trigger every 1ms
-    //1s timer
+    ROM_TimerLoadSet(TIMER0_BASE, TIMER_A, g_ui32SysClock/1000);
+
+    // 1s timer
     ROM_TimerConfigure(TIMER1_BASE, TIMER_CFG_PERIODIC);
-    ROM_TimerLoadSet(TIMER1_BASE, TIMER_A, g_ui32SysClock);//trigger every 1s
-    // Setup the interrupts for the timer timeouts.
+    ROM_TimerLoadSet(TIMER1_BASE, TIMER_A, g_ui32SysClock);
+
+    // setup interrupts for the timer timeouts
     ROM_IntEnable(INT_TIMER0A);
     ROM_IntEnable(INT_TIMER1A);
     ROM_TimerIntEnable(TIMER0_BASE, TIMER_TIMA_TIMEOUT);
@@ -33,7 +37,7 @@ void TimerInit(uint32_t g_ui32SysClock)
 }
 
 /**
- * Handler of timer interrupts, set a clock for program
+ * Handle timer interrupts, set a clock for program
  */
 void Timer0IntHandler(void) {
     // Clear the timer interrupt.
@@ -59,7 +63,7 @@ void Timer0IntHandler(void) {
 }
 
 /**
- * Handler of timer interrupts, set a clock for program
+ * Handle timer interrupts, set a clock for program
  */
 void Timer1IntHandler(void){
     ROM_TimerIntClear(TIMER1_BASE, TIMER_TIMA_TIMEOUT);
