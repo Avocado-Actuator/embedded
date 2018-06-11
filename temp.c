@@ -1,16 +1,17 @@
-/*
- * temp.c
- *
- *  Created on: Apr 30, 2018
- *      Author: Ryan
+/**
+ * Implementation of temperature reading.
  */
 
 #include "temp.h"
-#include "motor.h"
 
 float Temp, PrevTemp;
-//jdkshlfk
-void TempInit(uint32_t ui32SysClock){
+
+/**
+ * Initialize temperature reading.
+ *
+ * @param g_ui32SysClock - system clock to sync with
+ */
+void TempInit(uint32_t ui32SysClock) {
     // The SSI0 peripheral must be enabled for use.
     SysCtlPeripheralEnable(SYSCTL_PERIPH_SSI1);
     SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOB);
@@ -31,6 +32,7 @@ void TempInit(uint32_t ui32SysClock){
     GPIOPinTypeSSI(GPIO_PORTE_BASE, GPIO_PIN_5);
 
     GPIOPinTypeGPIOInput(GPIO_PORTE_BASE, GPIO_PIN_4);
+
     // Configure and enable the SSI port for SPI master mode.  Use SSI0,
     // system clock supply, idle clock level low and active low clock in
     // freescale SPI mode, master mode, 1MHz SSI frequency, and 16-bit data.
@@ -40,29 +42,41 @@ void TempInit(uint32_t ui32SysClock){
     // the different SPI modes.
     SSIConfigSetExpClk(SSI1_BASE, ui32SysClock, SSI_FRF_MOTO_MODE_1,
                            SSI_MODE_MASTER, 1000000, 16);
-    // Enable the SSI0 module.
+    // enable SSI0 module
     SSIEnable(SSI1_BASE);
     UARTprintf("Thermocouple initialized\n");
 }
 
+/**
+ * Get current temperature.
+ *
+ * @return the current temperature
+ */
 float getTemp() { return Temp; }
+
+/**
+ * Set current temperature.
+ *
+ * @param newTemp - the new temperature value to update with
+ */
 void setTemp(float newTemp) { Temp = newTemp; }
 
-void updateTemp(){
+/**
+ * Update current temperature reading.
+ */
+void updateTemp() {
     uint32_t data;
     SSIDataPut(SSI1_BASE, 0);
     SSIDataGet(SSI1_BASE, &data);
-    //UARTprintf("before: %d\n", data>>4);
-    data>>=2;
-    float decimal=0.25*(data & 0x3);
-    int intergral=data>>2;
-    PrevTemp = getTemp();
-    setTemp(decimal+intergral);
-    //UARTprintf("after: %d\n", data);
+    data >>= 2;
 
-    if(getTemp()>MAX_TEMP){
+    float decimal = 0.25 * (data & 0x3);
+    int intergral= data >> 2;
+    PrevTemp = getTemp();
+    setTemp(decimal + intergral);
+
+    if(getTemp() > MAX_TEMP) {
         UARTprintf("Motor too hot! Freeze!");
         brake();
     }
-    return;
 }
