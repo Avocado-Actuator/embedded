@@ -1,12 +1,9 @@
-/*
- * isense.h
- */
-
 #ifndef MOTOR_H_
 #define MOTOR_H_
 
 #include <stdbool.h>
 #include <stdint.h>
+
 #include "inc/hw_memmap.h"
 #include "inc/hw_ints.h"
 #include "driverlib/adc.h"
@@ -23,6 +20,7 @@
 
 #include "mag_encoder.h"
 #include "reflectance.h"
+#include "isense.h"
 
 float   frequency,
         duty;
@@ -31,6 +29,7 @@ int     direction;
 int     pos_int,
         vel_int,
         cur_int;
+
 // angle
 float   ANGLE,
         TARGET_ANGLE,
@@ -59,7 +58,7 @@ uint8_t getStatus(void);
 void setStatus(uint8_t);
 void clearStatus(uint8_t);
 
-//Velocity PID parameters
+// velocity PID parameters
 float KP_velocity;
 float KI_velocity;
 float KD_velocity;
@@ -99,7 +98,7 @@ void updateVelocity(void);
 void PWMoutput(float);
 uint32_t getPWM(void);
 
-void brake(void);
+void brake(bool);
 void disableDriver(void);
 void enableDriver(void);
 #endif /* MOTOR_H_ */
