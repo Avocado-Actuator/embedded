@@ -77,6 +77,6 @@ void updateTemp() {
 
     if(getTemp() > MAX_TEMP) {
         UARTprintf("Motor too hot! Freeze!");
-        brake();
+        brake(getEStop());
     }
 }

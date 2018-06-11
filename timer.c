@@ -55,11 +55,7 @@ void Timer0IntHandler(void) {
     ++HEARTBEAT_TIME;
     // expect heartbeat every 500 ms
     // user should send multiple in that time in case of corruption
-    // if(HEARTBEAT_TIME % 500 == 0) {
-    //     UARTprintf(
-    //         "\n\n\n\n\n\n\n\n%d PANIC ESTOP, NO HEARTBEAT\n\n\n\n\n\n\n\n",
-    //         heartbeat_panic_counter++);
-    // }
+    if(HEARTBEAT_TIME % 500 == 0) { brake(getEStop()); }
 }
 
 /**

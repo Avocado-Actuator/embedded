@@ -98,7 +98,7 @@ void updateCurrent(void) {
 
     if(getCurrent() > MAX_CURRENT) {
         UARTprintf("Drawing too much current! Freeze!");
-        brake();
+        brake(getEStop());
     }
 }
 
